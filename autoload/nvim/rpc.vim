@@ -4,9 +4,13 @@ set cpo&vim
 
 let s:script = expand('<sfile>:h:h:h').'/lib/index.js'
 let s:channel = v:null
-" used for socket path
-call delete('/tmp/nvim')
-let s:tempname = '/tmp/nvim'
+" used for socket path, env used only for testing purpose
+if !empty($NVIM_LISTEN_ADDRESS)
+  call delete($NVIM_LISTEN_ADDRESS)
+  let s:tempname = $NVIM_LISTEN_ADDRESS
+else
+  let s:tempname = tempname()
+endif
 
 function! s:on_error(channel, msg)
   echohl Error | echom a:msg | echohl None
@@ -16,8 +20,9 @@ let s:start = 0
 
 function! s:on_notify(channel, result)
   if a:result ==# 'ready'
-    call system('echo "'.s:tempname.'" | pbcopy')
-    echo s:tempname
+    echohl MoreMsg 
+    echo 'Server started at: '.s:tempname
+    echohl None
   endif
 endfunction
 
