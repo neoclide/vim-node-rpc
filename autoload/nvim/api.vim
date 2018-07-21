@@ -15,18 +15,26 @@ endfunction
 function! s:switch_tab(tabnr)
 pyx << EOF
 tabnr = int(vim.eval('a:tabnr'))
-for t in vim.tabpages:
-  if t.number == tabnr:
-    tab = t
-    break
+tab = find(lambda x: x.number == tabnr, vim.tabpages)
+EOF
+endfunction
+
+function! s:switch_buf(bufnr)
+pyx << EOF
+bufnr = int(vim.eval('a:bufnr'))
+buf = find(lambda x: x.number == bufnr, vim.buffers)
 EOF
 endfunction
 
 function! s:switch_win(win_id)
   let [tabnr, winnr] = win_id2tabwin(a:win_id)
   if tabnr == 0 | return | endif
-  execute 'pyx windows = vim.tabpages['.(tabnr - 1).'].windows'
-  execute 'pyx win = windows['.(winnr - 1).']'
+pyx << EOF
+tabnr = int(vim.eval('tabnr'))
+wnr = int(vim.eval('winnr'))
+tab = find(lambda x: x.number == tabnr, vim.tabpages)
+win = find(lambda x: x.number == wnr, tab.windows)
+EOF
   return 1
 endfunction
 
@@ -106,13 +114,26 @@ function! s:funcs.win_is_valid(win_id) abort
 endfunction
 
 function! s:funcs.win_get_number(win_id) abort
-  return win_id2win(a:win_id)
+  if !s:switch_win(a:win_id) | return v:null | endif
+  return pyxeval('win.number')
 endfunction
 
 function! s:funcs.win_set_cursor(win_id, pos) abort
   if !s:switch_win(a:win_id) | return v:null | endif
   let [lnum, col] = a:pos
   execute 'pyx win.cursor = ('.lnum.','.col.')'
+endfunction
+
+function! s:funcs.buf_is_valid(bufnr)
+  if !bufexists(a:bufnr) | return 0 | endif
+  call s:switch_buf(a:bufnr)
+  return pyxeval('buf.valid')
+endfunction
+
+function! s:funcs.buf_get_mark(bufnr, name)
+  if !bufexists(a:bufnr) | return 0 | endif
+  call s:switch_buf(a:bufnr)
+  return pyxeval('buf.mark(vim.eval("a:name"))')
 endfunction
 
 function! s:funcs.buf_line_count(bufnr) abort
@@ -271,6 +292,13 @@ EOF
 endfunction
 
 function! nvim#api#func_names() abort
+pyx << EOF
+def find(f, seq):
+  for item in seq:
+    if f(item):
+      return item
+  return None
+EOF
   return keys(s:funcs)
 endfunction
 

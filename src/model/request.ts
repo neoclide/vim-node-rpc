@@ -139,13 +139,9 @@ export default class Request {
         let [expr] = args
         return await this.eval(expr)
       }
-      case 'nvim_buf_is_valid': {
-        let [bufnr] = args
-        return await this.call('bufexists', [bufnr])
-      }
       case 'nvim_buf_get_var': {
         let [bufnr, name] = args
-        return await this.call('getbufvar', [bufnr, name, null])
+        return await this.call('getbufvar', [bufnr, name])
       }
       case 'nvim_buf_get_changedtick': {
         let [bufnr] = args

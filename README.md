@@ -3,11 +3,13 @@
 This module is made to make vim start a messagepack server as neovim
 does, so that neovim remote plugins could work for vim.
 
-Tested on vim 8.1.150.
+Tested on vim 8.1.150, could works, but still W.I.P.
 
 ## How it works
 
 ![group](https://user-images.githubusercontent.com/251450/43032696-d71ef922-8cef-11e8-9ecc-392b1fbc29ed.png)
+
+![gif](https://pic3.zhimg.com/80/v2-1e44bac755aa8b6193520c7d56dd1857_hd.gif)
 
 ## Play with it
 
@@ -21,24 +23,9 @@ Start testing service by:
 
     ./start.sh
 
-You will get the message of service started.
+Now you can control your vim with python-client from neovim.
 
-In another terminal, connect a python REPL to rpc service like:
-
-```python
->>> from neovim import attach
-# Create a python API session attached to unix domain socket created above:
->>> nvim = attach('socket', path='/tmp/vim-rpc')
-# Now do some work.
->>> buffer = nvim.current.buffer # Get the current buffer
->>> buffer[0] = 'replace first line'
->>> buffer[:] = ['replace whole buffer']
->>> nvim.command('vsplit')
->>> nvim.windows[1].width = 10
->>> nvim.vars['global_var'] = [1, 2, 3]
->>> nvim.eval('g:global_var')
-[1, 2, 3]
-```
+Have fun.
 
 ## Limitation
 
@@ -46,9 +33,10 @@ There're some methods that no clear way to implement for vim:
 
 * `nvim_execute_lua`
 * `nvim_input`
+* `nvim_buf_attach`
+* `nvim_buf_detach`
 * `nvim_buf_get_keymap`
 * `nvim_buf_get_commands`
-* `nvim_buf_get_mark`
 * `nvim_buf_add_highlight`
 * `nvim_buf_clear_highlight`
 * `nvim_replace_termcodes`
@@ -66,8 +54,8 @@ There're some methods that no clear way to implement for vim:
 * `nvim_get_proc_children`
 * `nvim_get_proc`
 
-Some methods (window and tab related) requires python support of vim to work,
-you should either have `has('python')` or `has('python3')` to `1` with vim.
+Some methods requires python support of vim to work, you should either have
+`has('python')` or `has('python3')` to `1` with vim.
 
 ## Tips
 
