@@ -1,26 +1,40 @@
-scriptencoding utf-8
-let s:save_cpo = &cpo
-set cpo&vim
+let s:root = expand('<sfile>:h')
+let g:nvim_node_rpc_debug = 1
 
-let root = expand('<sfile>:h')
-execute 'set rtp+='.fnameescape(root)
+augroup rpc_ready
+  autocmd!
+  autocmd User NvimRpcReady call s:PythonStart()
+augroup end
 
-let s:logfile = tempname()
-call ch_logfile(s:logfile, 'w')
+function! s:PythonStart()
+  terminal python
+  let job = term_getjob("")
+  let channel = job_getchannel(job)
+  call ch_sendraw(channel, "from neovim import attach\n")
+  call ch_sendraw(channel, "nvim = attach('socket', path='/tmp/vim-rpc')\n")
+  call ch_sendraw(channel, "buffer = nvim.buffers[1]\n")
+endfunction
 
+function! s:NodeStart()
+  let script = s:root.'/bin/server.js'
+  call job_start(['node', script], {
+        \ 'in_io': 'null',
+        \ 'out_cb': function('s:on_stdout'),
+        \ 'err_cb': function('s:on_stderr'),
+        \ 'env': {
+        \   'NVIM_LISTEN_ADDRESS': $NVIM_LISTEN_ADDRESS
+        \ }
+        \})
+endfunction
+
+function! s:on_stdout(channel, message)
+  echo a:message
+endfunction
+
+function! s:on_stderr(channel, message)
+  echohl Error | echon a:message | echohl None
+endfunction
+
+command! -nargs=? Openlog :call nvim#rpc#open_log()
+execute 'set rtp+='.fnameescape(s:root)
 call nvim#rpc#start_server()
-
-terminal python
-
-let job = term_getjob("")
-let channel = job_getchannel(job)
-" wait for server start
-sleep 200m
-call ch_sendraw(channel, "from neovim import attach\n")
-call ch_sendraw(channel, "nvim = attach('socket', path='/tmp/vim-rpc')\n")
-call ch_sendraw(channel, "buffer = nvim.buffers[1]\n")
-
-command! -nargs=? Openlog :execute 'edit '.s:logfile
-
-let &cpo = s:save_cpo
-unlet s:save_cpo

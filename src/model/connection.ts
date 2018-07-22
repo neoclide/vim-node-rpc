@@ -27,7 +27,7 @@ export default class Connection extends Emitter {
             return
           }
           if (id > 0) {
-            this.emit('request', id, obj)
+             this.emit('request', id, obj)
           } else if (id == 0) {
             if (obj[0] == 'ready') {
               let [channel, fns, tempname] = obj[1]
@@ -43,9 +43,8 @@ export default class Connection extends Emitter {
             this.emit('response', id, obj)
           }
         } catch (e) {
-          logger.error('Json parse error for:', buffered)
+          logger.error('request error: ', e.message)
         }
-        buffered = ''
       } else if (buffered.indexOf('\n') !== -1) {
         logger.error('Invalid data received from vim', buffered)
       }
@@ -71,12 +70,12 @@ export default class Connection extends Emitter {
     return this._tempfile
   }
 
-  public response(requestId:number, data:any):void {
-    this.send([requestId, data])
+  public response(requestId:number, data?:any):void {
+    this.send([requestId, data || null])
   }
 
-  public notify(data:any):void {
-    this.send([0, data])
+  public notify(event:string, data?:any):void {
+    this.send([0, [event, data || null]])
   }
 
   public send(arr:any[]):void {

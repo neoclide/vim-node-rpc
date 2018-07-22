@@ -302,9 +302,20 @@ EOF
   return keys(s:funcs)
 endfunction
 
-function! nvim#api#call(method, ...) abort
+function! nvim#api#call(native, method, ...) abort
   let args = get(a:, 1, [])
-  return call(s:funcs[a:method], args)
+  let err = v:null
+  let res = v:null
+  try
+    if a:native
+      let res = call(a:method, args)
+    else
+      let res = call(s:funcs[a:method], args)
+    endif
+  catch /.*/
+    let err = v:exception
+  endtry
+  return [err, res]
 endfunction
 
 let &cpo = s:save_cpo

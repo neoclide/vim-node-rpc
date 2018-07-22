@@ -9,30 +9,41 @@ const request = new Request(conn)
 conn.on('ready', async () => {
   let server = new Server(conn.tempfile, request)
   conn.on('request', async (id, obj) => {
-    let [method, args] = obj
+    let [clientId, method, args] = obj
     try {
-      let res = await server.request(method, args)
-      conn.response(id, res)
+      let res = await server.request(clientId, method, args)
+      conn.response(id, [null, res])
     } catch (e) {
       console.error(e.message) // tslint:disable-line
+      conn.response(id, [e.message, null])
     }
   })
 
   conn.on('notification', obj => {
-    let [method, args] = obj
-    server.notify(method, args)
+    let [clientId, method, args] = obj
+    server.notify(clientId, method, args)
   })
 
   server.on('ready', () => {
     conn.notify('ready')
   })
+
+  server.on('connect', clientId => {
+    conn.notify('connect', clientId)
+  })
+
+  server.on('disconnect', clientId => {
+    conn.notify('disconnect', clientId)
+  })
 })
 
 process.on('uncaughtException', err => {
   logger.error('uncaughtException', err.stack)
+  console.error(`[rpc.vim] rpc error ${err.message}`) // tslint:disable-line
 })
 
-process.on('unhandledRejection', reason => {
+process.on('unhandledRejection', (reason, p) => {
   logger.error('unhandledRejection', reason)
+  let msg = '[rpc.vim] Unhandled Rejection at:' + p + ' reason: ' + reason
+  console.error(msg) // tslint:disable-line
 })
-

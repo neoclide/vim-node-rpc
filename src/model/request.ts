@@ -1,4 +1,5 @@
 import Connection from './connection'
+import Emitter from 'events'
 import fs from 'fs'
 import path from 'path'
 import {Window, Buffer, Tabpage} from '../meta'
@@ -7,27 +8,74 @@ const logger = require('../logger')('model-request')
 const timeout = 3000
 const metaFile = path.join(__dirname, '../../data/api.json')
 const metaData = JSON.parse(fs.readFileSync(metaFile, 'utf8'))
+const callMethod = 'nvim#api#call'
 
 function commandEscape(str:string):string {
   return str.replace(/'/g, "''")
 }
 
+type RequestType = 'call' | 'expr'
+
+class Response extends Emitter {
+  private _resolved = false
+
+  constructor(private type:RequestType, private expr?:string) {
+    super()
+    setTimeout(() => {
+      if (!this._resolved) {
+        this.emit('done', 'timeout after 3s', null)
+      }
+    }, timeout)
+  }
+
+  public resolve(result:any):void {
+    if (this._resolved) return
+    this._resolved = true
+    if (this.type == 'call') {
+      let [error, res] = result
+      this.emit('done', error, res)
+    } else if (this.type == 'expr') {
+      if (result == 'ERROR') {
+        this.emit('done', `vim (E15) invalid expression: ${this.expr}`, null)
+      } else {
+        this.emit('done', null, result)
+      }
+    }
+  }
+
+  public get result():Promise<any> {
+    if (this._resolved) return
+    return new Promise((resolve, reject):void => {
+      this.once('done', (errMsg, result) => {
+        this.removeAllListeners()
+        if (errMsg) return reject(new Error(errMsg))
+        resolve(result)
+      })
+    })
+  }
+}
+
 // request vim for result
 export default class Request {
   private requestId = -1
-  private pendingRequests:Set<()=>void> = new Set()
+  private pendings:Map<number, Response> = new Map()
   private supportedFuncs:string[]
+  private buffered:Function[] = []
 
   constructor(private conn:Connection) {
     conn.once('ready', funcs => {
       this.supportedFuncs = funcs.map(s => 'nvim_' + s)
-      let {pendingRequests} = this
-      setTimeout(() => {
-        for (let func of pendingRequests) {
-          func()
-        }
-        this.pendingRequests = null
-      }, 20)
+      let {buffered} = this
+      for (let func of buffered) {
+        func()
+      }
+    })
+    // only used for expr and call
+    conn.on('response', (requestId, res) => {
+      let response = this.pendings.get(requestId)
+      if (!response) return
+      response.resolve(res)
+      this.pendings.delete(requestId)
     })
   }
 
@@ -41,68 +89,39 @@ export default class Request {
     })
   }
 
-  public eval(expr:string):Promise<any> {
+  private eval(expr:string):Promise<any> {
     let {conn} = this
     let id = this.requestId
     this.requestId = this.requestId - 1
-    return new Promise((resolve, reject) => {
-      let called = false
-      let cb = (requestId, res) => {
-        called = true
-        if (requestId == id) {
-          resolve(res)
-          conn.off('response', cb)
-        }
-      }
-      let {isReady}  = this.conn
-      if (isReady) {
-        setTimeout(() => {
-          if (called) return
-          conn.off('response', cb)
-          reject(new Error(`vim timeout after ${timeout}ms`))
-        }, timeout)
-      }
-      conn.on('response', cb)
-      if (!isReady) {
-        this.pendingRequests.add(() => {
-          conn.expr(id, expr)
-        })
-      } else {
+    let res = new Response('expr', expr)
+    this.pendings.set(id, res)
+    if (conn.isReady) {
+      conn.expr(id, expr)
+    } else {
+      this.buffered.push(() => {
         conn.expr(id, expr)
-      }
-    })
+      })
+    }
+    return res.result
   }
 
-  public call(func:string, args:any[]):Promise<any> {
+  private call(func:string, args:any[]):Promise<any> {
     let {conn} = this
     let id = this.requestId
+    let isNative = !func.startsWith('nvim_')
+    let fname = isNative ? func : func.slice(5)
+    let arglist = [isNative ? 1 : 0, fname, args]
     this.requestId = this.requestId - 1
-    return new Promise((resolve, reject) => {
-      let called = false
-      let cb = (requestId, res) => {
-        called = true
-        if (requestId == id) {
-          resolve(res)
-          conn.off('response', cb)
-        }
-      }
-      let {isReady}  = this.conn
-      if (isReady) {
-        setTimeout(() => {
-          if (called) return
-          conn.off('response', cb)
-          reject(new Error(`vim timeout after ${timeout}ms`))
-        }, timeout)
-      }
-      conn.on('response', cb)
-      if (!isReady) {
-        this.pendingRequests.add(() => {
-          conn.call(id, func, args)
-        })
-      } else {
-        conn.call(id, func, args)
-      }
-    })
+    let res = new Response('call')
+    this.pendings.set(id, res)
+    if (conn.isReady) {
+      conn.call(id, callMethod, arglist)
+    } else {
+      this.buffered.push(() => {
+        conn.call(id, callMethod, arglist)
+      })
+    }
+    return res.result
   }
 
   private command(str:string):Promise<void> {
@@ -113,31 +132,29 @@ export default class Request {
   public async callNvimFunction(method:string, args:any[]):Promise<any> {
     args = this.convertArgs(args || [])
     let {supportedFuncs} = this
-          // return this.call('nvim#api#call', [method.slice(5), args || []])
     switch (method) {
       case 'nvim_tabpage_get_win': {
-        let wid = await this.call('nvim#api#call', [method.slice(5), args])
+        let wid = await this.call(method, args)
         return new Window(wid)
       }
       case 'nvim_win_get_tabpage': {
-        let tabnr = await this.call('nvim#api#call', [method.slice(5), args])
+        let tabnr = await this.call(method, args)
         return new Tabpage(tabnr)
       }
       case 'nvim_tabpage_list_wins': {
-        let win_ids = await this.call('nvim#api#call', [method.slice(5), args])
-        return win_ids.map(id => new Window(id))
+        let win_ids = await this.call(method, args)
+        return win_ids ? win_ids.map(id => new Window(id)) : []
       }
       case 'nvim_list_wins': {
-        let win_ids = await this.call('nvim#api#call', [method.slice(5), []])
-        return win_ids.map(id => new Window(id))
+        let win_ids = await this.call(method, args)
+        return win_ids ? win_ids.map(id => new Window(id)) : []
       }
       case 'nvim_call_function': {
         let [fn, list] = args
         return await this.call(fn, list)
       }
       case 'nvim_eval': {
-        let [expr] = args
-        return await this.eval(expr)
+        return await this.eval(args[0])
       }
       case 'nvim_buf_get_var': {
         let [bufnr, name] = args
@@ -247,10 +264,10 @@ export default class Request {
       }
       default:
         if (supportedFuncs.indexOf(method) !== -1) {
-          return this.call('nvim#api#call', [method.slice(5), args || []])
+          return await this.call(method, args || [])
         }
-        console.error(`[vim-node-rpc] method ${method} not supported`) // tslint:disable-line
-        return
+        console.error(`[rpc.vim] method ${method} not supported`) // tslint:disable-line
+        throw new Error(`Medhot ${method} not supported`)
     }
   }
 }

@@ -9,12 +9,15 @@ const is_win = os.platform() == 'win32'
 // a messagepack server
 export default class MsgpackServer extends Emitter  {
   private server:Server
-  private clients:Set<Client> = new Set()
+  private clients:Client[] = []
+  private clientId = 1
   constructor(path:string, private requester:Request) {
     super()
     if (is_win) path = "\\\\.\\pipe\\" + path
     this.server = net.createServer(socket => {
-      this.createClient(socket)
+      this.createClient(socket, this.clientId)
+      this.emit('connect', this.clientId)
+      this.clientId = this.clientId + 1
     })
     this.server.on('close', this.onClose.bind(this))
     this.server.on('error', this.onError.bind(this))
@@ -23,16 +26,22 @@ export default class MsgpackServer extends Emitter  {
     })
   }
 
-  private createClient(socket:Socket):void {
-    let client = new Client()
+  private createClient(socket:Socket, clientId:number):void {
+    let client = new Client(clientId)
     client.attach(socket, socket)
-    this.clients.add(client)
+    this.clients.push(client)
     client.on('detach', () => {
-      this.clients.delete(client)
+      let idx = this.clients.findIndex(o => o.id == clientId)
+      if (idx !== -1) this.clients.splice(idx, 1)
+      this.emit('disconnect', client.id)
     })
     client.on('request', (method, args, response) => {
       logger.debug('request', method, args)
       this.requester.callNvimFunction(method, args).then(result => {
+        if (method == 'vim_get_api_info' || method == 'nvim_get_api_info') {
+          // use clientId as neovim channelId
+          result[0] = clientId
+        }
         response.send(result, false)
       }, err => {
         response.send(err.message, true)
@@ -44,20 +53,27 @@ export default class MsgpackServer extends Emitter  {
     })
   }
 
-  public notify(method:string, args:any[]):void {
+  public notify(clientId:number, method:string, args:any[]):void {
     for (let client of this.clients) {
-      client.notify(method, args)
+      if (clientId == 0) {
+        client.notify(method, args)
+      } else if (client.id == clientId) {
+        client.notify(method, args)
+      }
     }
   }
 
-  public request(method:string, args:any[]):Promise<any> {
-    for (let client of this.clients) {
-      return client.request(method, args)
-    }
+  public request(clientId:number, method:string, args:any[]):Promise<any> {
+    let client = this.clients.find(o => o.id == clientId)
+    if (!clientId) Promise.reject(new Error(`Client ${clientId} not found!`))
+    return client.request(method, args)
   }
 
   private onClose():void {
-    this.clients.clear()
+    for (let client of this.clients) {
+      client.detach()
+    }
+    this.clients = []
     this.emit('close')
   }
 

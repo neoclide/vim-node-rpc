@@ -20,6 +20,7 @@
     "url": "git+https://github.com/neoclide/vim-node-rpc.git"
   },
   "keywords": [
+    "vim",
     "neovim",
     "node"
   ],
@@ -44,6 +45,7 @@
     "@types/jest": "^23.3.0",
     "@types/node": "^10.5.2",
     "jest": "^23.4.1",
+    "neovim": "^4.2.1",
     "rimraf": "^2.6.2",
     "ts-jest": "^23.0.1"
   }

@@ -40,7 +40,7 @@ export default class Client extends EventEmitter {
   private writer: NodeJS.WritableStream
   private codec: Codec
 
-  constructor() {
+  constructor(public readonly id:number) {
     super()
     const codec = this.setupCodec()
     this.encodeStream = msgpack.createEncodeStream({codec})
@@ -112,7 +112,11 @@ export default class Client extends EventEmitter {
 
   public notify(method: string, args: any[]): void {
     logger.debug('notification:', method, args)
-    this.encodeStream.write([2, method, args])
+    this.encodeStream.write(
+      msgpack.encode([2, method, args], {
+        codec: this.codec
+      })
+    )
   }
 
   // message from client
