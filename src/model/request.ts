@@ -156,6 +156,9 @@ export default class Request {
       case 'nvim_eval': {
         return await this.eval(args[0])
       }
+      case 'nvim_command': {
+        return await this.command(args[1])
+      }
       case 'nvim_buf_get_var': {
         let [bufnr, name] = args
         return await this.call('getbufvar', [bufnr, name])
