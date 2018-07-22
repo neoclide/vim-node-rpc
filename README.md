@@ -27,6 +27,17 @@ Now you can control your vim with python-client from neovim.
 
 Have fun.
 
+## API
+
+* `nvim#rpc#start_server()` start server.
+* `nvim#rpc#check_client({clientId})` check if clientId available.
+* `nvim#rpc#request({clientId}, {method}, [{arguments}])` send request.
+* `nvim#rpc#notify({clientId}, {method}, [{arguments}])` send notification.
+* `autocmd User NvimRpcReady` fired when server is ready
+
+The `clientId` would be send to client on method `nvim_api_get_info` as
+`channelId` of neovim.
+
 ## Limitation
 
 There're some methods that no clear way to implement for vim:

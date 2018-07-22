@@ -19,16 +19,11 @@ function! s:NodeStart()
   let script = s:root.'/bin/server.js'
   call job_start(['node', script], {
         \ 'in_io': 'null',
-        \ 'out_cb': function('s:on_stdout'),
         \ 'err_cb': function('s:on_stderr'),
         \ 'env': {
         \   'NVIM_LISTEN_ADDRESS': $NVIM_LISTEN_ADDRESS
         \ }
         \})
-endfunction
-
-function! s:on_stdout(channel, message)
-  echo a:message
 endfunction
 
 function! s:on_stderr(channel, message)

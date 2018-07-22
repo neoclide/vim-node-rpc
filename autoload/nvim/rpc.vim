@@ -47,6 +47,7 @@ function! nvim#rpc#start_server()
   if !empty(s:channel)
     let state = ch_status(s:channel)
     if state == 'open' || state == 'buffered'
+      " running
       return
     endif
   endif
