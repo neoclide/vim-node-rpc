@@ -44,7 +44,8 @@ export default class MsgpackServer extends Emitter  {
         }
         response.send(result, false)
       }, err => {
-        response.send(err.message, true)
+        logger.debug('request error', method, err.message)
+        response.send(err, true)
       })
     })
     // not used

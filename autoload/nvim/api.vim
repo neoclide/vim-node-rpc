@@ -197,6 +197,10 @@ for b in vim.buffers:
 EOF
 endfunction
 
+function! s:funcs.command(command) abort
+  execute a:command
+endfunction
+
 function! s:funcs.set_current_dir(dir) abort
   execute 'cd '.a:dir
 endfunction

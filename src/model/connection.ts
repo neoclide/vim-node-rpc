@@ -16,39 +16,52 @@ export default class Connection extends Emitter {
     this.writeable = process.stdout
     let buffered = ''
     this.readable.on('data', (chunk:string) => {
-      buffered = buffered + chunk
-      if (buffered.endsWith('\n')) {
-        let data = buffered
+      let idx = chunk.indexOf('\n')
+      if (idx !== -1) {
+        let parts = chunk.split('\n')
+        let first = parts.shift()
+        this.parseData(buffered + first)
         buffered = ''
-        try {
-          let [id, obj] = JSON.parse(data)
-          if (typeof id !== 'number') {
-            logger.error('invalid request')
-            return
+        while(parts.length) {
+          let str = parts.shift()
+          if (str.length) {
+            this.parseData(str)
           }
-          if (id > 0) {
-             this.emit('request', id, obj)
-          } else if (id == 0) {
-            if (obj[0] == 'ready') {
-              let [channel, fns, tempname] = obj[1]
-              this._channel = channel
-              this._tempfile = tempname
-              this._ready = true
-              this.emit('ready', fns)
-            } else {
-              this.emit('notification', obj)
-            }
-          } else {
-            // response for previous request
-            this.emit('response', id, obj)
-          }
-        } catch (e) {
-          logger.error('request error: ', e.message)
         }
-      } else if (buffered.indexOf('\n') !== -1) {
-        logger.error('Invalid data received from vim', buffered)
+      } else {
+        buffered = buffered + chunk
       }
     })
+  }
+
+  private parseData(data):void {
+    let arr:any[]
+    try {
+      arr = JSON.parse(data)
+    } catch (e) {
+      logger.error('Invalid data from vim', data)
+    }
+    let [id, obj] = JSON.parse(data)
+    if (arr.length > 2) {
+      logger.error('Result array length > 2', arr)
+    }
+    if (id > 0) {
+      this.emit('request', id, obj)
+    } else if (id == 0) {
+      if (obj[0] == 'ready') {
+        let [channel, fns, tempname] = obj[1]
+        this._channel = channel
+        this._tempfile = tempname
+        this._ready = true
+        this.emit('ready', fns)
+      } else {
+        this.emit('notification', obj)
+      }
+    } else {
+      logger.debug('received response', id, obj)
+      // response for previous request
+      this.emit('response', id, obj)
+    }
   }
 
   public get channelId():Promise<number> {

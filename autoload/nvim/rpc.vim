@@ -5,7 +5,7 @@ let did_node_rpc_loaded = 1
 
 let s:clientIds = []
 let s:logfile = tempname()
-let s:script = expand('<sfile>:h:h:h').'/lib/index.js'
+let s:script = resolve(expand('<sfile>:h:h:h').'/lib/index.js')
 let s:channel = v:null
 
 " env used only for testing purpose
