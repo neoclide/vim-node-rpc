@@ -164,10 +164,10 @@ export default class Request {
         let [bufnr] = args
         return await this.call('getbufvar', [bufnr, 'changedtick', 0])
       }
-      case 'Nvim_buf_set_var': {
+      case 'nvim_buf_set_var': {
         return await this.call('setbufvar', args)
       }
-      case 'Nvim_buf_del_var': {
+      case 'nvim_buf_del_var': {
         let [bufnr, name] = args
         return await this.call('setbufvar', [bufnr, name, null])
       }
