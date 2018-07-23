@@ -5,9 +5,22 @@ const logger = require('./logger')('index')
 
 const conn = new Connection(process.stdin, process.stdout)
 const request = new Request(conn)
+const sockFile = process.env.NVIM_LISTEN_ADDRESS
+const server = new Server(sockFile, request)
+
+server.on('ready', () => {
+  conn.notify('ready')
+})
+
+server.on('connect', clientId => {
+  conn.notify('connect', clientId)
+})
+
+server.on('disconnect', clientId => {
+  conn.notify('disconnect', clientId)
+})
 
 conn.on('ready', async () => {
-  let server = new Server(conn.tempfile, request)
   conn.on('request', async (id, obj) => {
     let [clientId, method, args] = obj
     try {
@@ -22,18 +35,6 @@ conn.on('ready', async () => {
   conn.on('notification', obj => {
     let [clientId, method, args] = obj
     server.notify(clientId, method, args)
-  })
-
-  server.on('ready', () => {
-    conn.notify('ready')
-  })
-
-  server.on('connect', clientId => {
-    conn.notify('connect', clientId)
-  })
-
-  server.on('disconnect', clientId => {
-    conn.notify('disconnect', clientId)
   })
 })
 

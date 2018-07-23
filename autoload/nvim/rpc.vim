@@ -43,7 +43,7 @@ function! s:on_exit(channel)
   doautocmd User NvimRpcExit
 endfunction
 
-function! nvim#rpc#start_server()
+function! nvim#rpc#start_server() abort
   if !empty(s:channel)
     let state = ch_status(s:channel)
     if state == 'open' || state == 'buffered'
@@ -64,13 +64,15 @@ function! nvim#rpc#start_server()
         \ 'callback': function('s:on_notify'),
         \ 'err_cb': function('s:on_error'),
         \ 'close_cb': function('s:on_exit'),
-        \ 'timeout': 3000
+        \ 'timeout': 3000,
+        \ 'env': {
+        \   'NVIM_LISTEN_ADDRESS': $NVIM_LISTEN_ADDRESS
+        \ }
         \})
   let s:channel = job_getchannel(job)
-  " send channel id to backend
   let info = ch_info(s:channel)
   let fns = nvim#api#func_names()
-  let data = json_encode([0, ['ready', [info.id, fns, s:tempname]]])
+  let data = json_encode([0, ['ready', [info.id, fns]]])
   call ch_sendraw(s:channel, data."\n")
 endfunction
 

@@ -4,7 +4,6 @@ const logger = require('../logger')('connection')
 export default class Connection extends Emitter {
   private _ready: boolean
   private _channel: number
-  private _tempfile: string
 
   constructor(
     private readable:NodeJS.ReadableStream,
@@ -49,9 +48,8 @@ export default class Connection extends Emitter {
       this.emit('request', id, obj)
     } else if (id == 0) {
       if (obj[0] == 'ready') {
-        let [channel, fns, tempname] = obj[1]
+        let [channel, fns] = obj[1]
         this._channel = channel
-        this._tempfile = tempname
         this._ready = true
         this.emit('ready', fns)
       } else {
@@ -77,10 +75,6 @@ export default class Connection extends Emitter {
 
   public get isReady():boolean {
     return this._ready
-  }
-
-  public get tempfile():string {
-    return this._tempfile
   }
 
   public response(requestId:number, data?:any):void {
