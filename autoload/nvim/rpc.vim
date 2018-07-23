@@ -1,12 +1,13 @@
-if exists('did_node_rpc_loaded') || v:version < 800
+if exists('g:did_node_rpc_loaded') || v:version < 800
   finish
 endif
-let did_node_rpc_loaded = 1
+let g:did_node_rpc_loaded = 1
 
 let s:clientIds = []
 let s:logfile = tempname()
 let s:script = resolve(expand('<sfile>:h:h:h').'/lib/index.js')
 let s:channel = v:null
+let s:isReady = 0
 
 " env used only for testing purpose
 if !empty($NVIM_LISTEN_ADDRESS)
@@ -28,7 +29,7 @@ endfunction
 function! s:on_notify(channel, result)
   let [event, data] = a:result
   if event ==# 'ready'
-    doautocmd User NvimRpcReady
+    let s:isReady = 1
   elseif event ==# 'connect'
     call add(s:clientIds, data)
   elseif event ==# 'disconnect'

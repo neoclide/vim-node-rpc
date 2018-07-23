@@ -33,10 +33,12 @@ Have fun.
 * `nvim#rpc#check_client({clientId})` check if clientId available.
 * `nvim#rpc#request({clientId}, {method}, [{arguments}])` send request.
 * `nvim#rpc#notify({clientId}, {method}, [{arguments}])` send notification.
-* `autocmd User NvimRpcReady` fired when server is ready
 
 The `clientId` would be send to client on method `nvim_api_get_info` as
 `channelId` of neovim.
+
+A client can connect to exists RPC server by listen to `$NVIM_LISTEN_ADDRESS`
+like neovim client.
 
 ## Limitation
 
