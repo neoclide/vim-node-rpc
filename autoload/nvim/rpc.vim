@@ -81,7 +81,7 @@ function! nvim#rpc#request(clientId, method, ...) abort
   if !nvim#rpc#check_client(a:clientId)
     return
   endif
-  let args = get(a:, 1, [])
+  let args = get(a:000, 0, [])
   let [errmsg, res] = ch_evalexpr(s:channel, [a:clientId, a:method, args])
   if errmsg
     echohl Error | echon '[rpc.vim] client error: '.errmsg | echohl None
@@ -92,7 +92,7 @@ endfunction
 
 function! nvim#rpc#notify(clientId, method, ...) abort
   if empty(s:channel) | return | endif
-  let args = get(a:, 1, [])
+  let args = get(a:000, 0, [])
   " use 0 as vim request id
   let data = json_encode([0, [a:clientId, a:method, args]])
   call ch_sendraw(s:channel, data."\n")
