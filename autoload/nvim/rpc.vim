@@ -72,8 +72,7 @@ function! nvim#rpc#start_server() abort
         \})
   let s:channel = job_getchannel(job)
   let info = ch_info(s:channel)
-  let fns = nvim#api#func_names()
-  let data = json_encode([0, ['ready', [info.id, fns]]])
+  let data = json_encode([0, ['ready', [info.id]]])
   call ch_sendraw(s:channel, data."\n")
 endfunction
 

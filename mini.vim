@@ -1,10 +1,6 @@
 let s:root = expand('<sfile>:h')
 let g:nvim_node_rpc_debug = 1
 
-augroup rpc_ready
-  autocmd!
-  autocmd User NvimRpcReady call s:PythonStart()
-augroup end
 
 function! s:PythonStart()
   terminal python
@@ -33,3 +29,5 @@ endfunction
 command! -nargs=? Openlog :call nvim#rpc#open_log()
 execute 'set rtp+='.fnameescape(s:root)
 call nvim#rpc#start_server()
+
+call timer_start(300, { -> s:PythonStart()})

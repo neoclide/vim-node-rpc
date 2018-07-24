@@ -31,13 +31,13 @@
   },
   "homepage": "https://github.com/neoclide/vim-node-rpc#readme",
   "dependencies": {
-    "log4js": ">= 3.0",
-    "msgpack-lite": ">= 0.1.26",
-    "uuid": ">= 3.0"
+    "log4js": "^3.0.2",
+    "msgpack-lite": "^0.1.26",
+    "uuid": "^3.3"
   },
   "devDependencies": {
     "@chemzqm/tsconfig": "^0.0.2",
-    "@chemzqm/tslint-config": "^1.0.14",
+    "@chemzqm/tslint-config": "^1.0.15",
     "@types/msgpack-lite": "^0.1.6",
     "@types/jest": "^23.3.0",
     "@types/node": "^10.5.2",

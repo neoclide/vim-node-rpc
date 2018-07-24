@@ -1,6 +1,6 @@
 import { Transform } from 'stream'
 
-const MIN_SIZE = 8 * 1024
+const MIN_SIZE = Buffer.poolSize
 
 export default class Buffered extends Transform {
   private chunks: Buffer[] | null

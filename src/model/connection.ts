@@ -11,36 +11,36 @@ export default class Connection extends Emitter {
     super()
     this._ready = false
     this.readable = process.stdin
-    this.readable.setEncoding('utf8')
     this.writeable = process.stdout
-    let buffered = ''
-    this.readable.on('data', (chunk:string) => {
-      let idx = chunk.indexOf('\n')
-      if (idx !== -1) {
-        let parts = chunk.split('\n')
-        let first = parts.shift()
-        this.parseData(buffered + first)
-        buffered = ''
-        while(parts.length) {
-          let str = parts.shift()
-          if (str.length) {
-            this.parseData(str)
-          }
+    let buffered = Buffer.alloc(0)
+    this.readable.on('data', (chunk:Buffer) => {
+      let start = 0
+      for (const pair of chunk.entries()) {
+        const [idx, b] = pair
+        if (b == 10) {
+          this.parseData(Buffer.concat([buffered, chunk.slice(start, idx)]))
+          start = idx + 1
+          buffered = Buffer.alloc(0)
         }
-      } else {
-        buffered = buffered + chunk
+      }
+      if (start == 0) {
+        buffered = Buffer.concat([buffered, chunk])
+      } else if (start != chunk.length) {
+        buffered = chunk.slice(start)
       }
     })
   }
 
-  private parseData(data):void {
+  private parseData(buf:Buffer):void {
+    if (buf.length == 0) return
+    let str = buf.toString('utf8')
     let arr:any[]
     try {
-      arr = JSON.parse(data)
+      arr = JSON.parse(str)
     } catch (e) {
-      logger.error('Invalid data from vim', data)
+      logger.error('Invalid data from vim', str)
     }
-    let [id, obj] = JSON.parse(data)
+    let [id, obj] = JSON.parse(str)
     if (arr.length > 2) {
       logger.error('Result array length > 2', arr)
     }
@@ -48,10 +48,10 @@ export default class Connection extends Emitter {
       this.emit('request', id, obj)
     } else if (id == 0) {
       if (obj[0] == 'ready') {
-        let [channel, fns] = obj[1]
+        let [channel] = obj[1]
         this._channel = channel
         this._ready = true
-        this.emit('ready', fns)
+        this.emit('ready', channel)
       } else {
         this.emit('notification', obj)
       }
