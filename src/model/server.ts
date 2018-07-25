@@ -50,7 +50,8 @@ export default class MsgpackServer extends Emitter  {
     })
     // not used
     client.on('notification', (event, args) => {
-      logger.info('Client event:', event, args)
+      logger.debug('Client event:', event, args)
+      this.emit('notification', event, args)
     })
   }
 

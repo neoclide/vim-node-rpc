@@ -101,14 +101,20 @@ export default class Connection extends Emitter {
     this.send(['normal', cmd])
   }
 
-  public expr(requestId:number, expr:string):void {
+  public expr(inNotify:any, expr:string):void
+  public expr(requestId:any, expr:string):void {
+    if (typeof requestId === 'boolean' && requestId === true) {
+      this.send(['expr', expr])
+      return
+    }
     this.send(['expr', expr, requestId])
   }
 
   // nvim always require a response, so requestId is required
-  public call(requestId:number, func:string, args:any[]):void {
-    if (requestId >= 0) {
-      logger.error('invalid requestId', requestId)
+  public call(isNotify:any, func:string, args:any[]):void
+  public call(requestId:any, func:string, args:any[]):void {
+    if (typeof requestId === 'boolean' && requestId === true) {
+      this.send(['call', func, args])
       return
     }
     this.send(['call', func, args, requestId])

@@ -20,6 +20,17 @@ server.on('disconnect', clientId => {
   conn.notify('disconnect', clientId)
 })
 
+server.on('notification', (event, args) => {
+  if (!conn.isReady) return
+  if (event == 'nvim_call_function') {
+    conn.call(true, args[0], args[1])
+  } else if (event == 'nvim_command') {
+    conn.expr(true, args[0])
+  } else {
+    logger.error(`Unknown event:`, event, args)
+  }
+})
+
 conn.on('ready', async () => {
   conn.on('request', async (id, obj) => {
     let [clientId, method, args] = obj
