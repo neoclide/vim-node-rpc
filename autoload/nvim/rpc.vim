@@ -3,6 +3,7 @@ if exists('g:did_node_rpc_loaded') || v:version < 800
 endif
 let g:did_node_rpc_loaded = 1
 
+let s:is_win = (has("win32") || has("win95") || has("win64") || has("win16"))
 let s:clientIds = []
 let s:logfile = tempname()
 let s:script = resolve(expand('<sfile>:h:h:h').'/lib/index.js')
@@ -15,7 +16,11 @@ if !empty($NVIM_LISTEN_ADDRESS)
   let s:tempname = $NVIM_LISTEN_ADDRESS
 else
   let s:tempname = tempname()
-  let $NVIM_LISTEN_ADDRESS = s:tempname
+  if s:is_win
+    let $NVIM_LISTEN_ADDRESS = s:tempname
+  else
+    let $NVIM_LISTEN_ADDRESS = '\\?\pipe\'.s:tempname
+  endif
 endif
 
 if get(g:, 'nvim_node_rpc_debug', 0)
