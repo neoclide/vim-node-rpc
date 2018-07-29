@@ -17,9 +17,9 @@ if !empty($NVIM_LISTEN_ADDRESS)
 else
   let s:tempname = tempname()
   if s:is_win
-    let $NVIM_LISTEN_ADDRESS = s:tempname
-  else
     let $NVIM_LISTEN_ADDRESS = '\\?\pipe\'.s:tempname
+  else
+    let $NVIM_LISTEN_ADDRESS = s:tempname
   endif
 endif
 

@@ -5,8 +5,8 @@ import path from 'path'
 
 const MAX_LOG_SIZE = 1024 * 1024
 const MAX_LOG_BACKUPS = 10
-const LOG_FILE_PATH = process.env.NVIM_COC_LOG_FILE || path.join(os.tmpdir(), 'vim-node-rpc.log')
-const level = process.env.NVIM_COC_LOG_LEVEL || 'info'
+const LOG_FILE_PATH = process.env.VIM_RPC_LOG_FILE || path.join(os.tmpdir(), 'vim-node-rpc.log')
+const level = process.env.VIM_RPC_LOG_LEVEL || 'info'
 
 if (level === 'debug') {
   fs.writeFileSync(LOG_FILE_PATH, '', 'utf8')

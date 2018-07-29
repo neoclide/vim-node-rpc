@@ -1,10 +1,8 @@
 import Emitter from 'events'
-import os from 'os'
 import net, {Server, Socket} from 'net'
 import Client from './client'
 import Request from './request'
 const logger = require('../logger')('server')
-const is_win = os.platform() == 'win32'
 
 // a messagepack server
 export default class MsgpackServer extends Emitter  {
@@ -13,7 +11,6 @@ export default class MsgpackServer extends Emitter  {
   private clientId = 1
   constructor(path:string, private requester:Request) {
     super()
-    if (is_win) path = "\\\\.\\pipe\\" + path
     this.server = net.createServer(socket => {
       this.createClient(socket, this.clientId)
       this.emit('connect', this.clientId)

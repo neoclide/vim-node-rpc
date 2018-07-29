@@ -15,4 +15,4 @@ if [ ! -f ./lib/index.js ]; then
   yarn install
 fi
 
-NVIM_LISTEN_ADDRESS=/tmp/vim-rpc vim -S mini.vim
+vim -S mini.vim
