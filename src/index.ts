@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import Connection from './model/connection'
 import Request from './model/request'
 import Server from './model/server'
