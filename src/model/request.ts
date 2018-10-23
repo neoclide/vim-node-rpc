@@ -2,7 +2,7 @@ import Connection from './connection'
 import Emitter from 'events'
 import fs from 'fs'
 import path from 'path'
-import {Window, Buffer, Tabpage} from '../meta'
+import { Window, Buffer, Tabpage } from '../meta'
 const logger = require('../logger')('model-request')
 
 const timeout = 3000
@@ -10,9 +10,9 @@ const metaFile = path.join(__dirname, '../../data/api.json')
 const metaData = JSON.parse(fs.readFileSync(metaFile, 'utf8'))
 const callMethod = 'nvim#api#call'
 
-const SUPPORTED_FUNCTIONS = ["buf_attach", "win_set_height", "win_del_var", "buf_detach", "set_var", "win_get_height", "tabpage_list_wins", "buf_set_lines", "command", "buf_set_name", "tabpage_get_win", "feedkeys", "win_set_var", "buf_get_mark", "tabpage_set_var", "win_get_position", "win_get_number", "win_set_cursor", "win_set_option", "win_get_cursor", "buf_line_count", "win_get_option", "set_current_buf", "set_current_tabpage", "win_get_width", "win_get_var", "tabpage_get_var", "tabpage_is_valid", "set_option", "buf_get_lines", "set_current_dir", "list_wins", "win_set_width", "win_get_tabpage", "tabpage_del_var", "del_var", "set_current_win", "win_is_valid", "buf_is_valid"]
+const SUPPORTED_FUNCTIONS = ["buf_attach", "win_set_height", "win_del_var", "buf_detach", "set_var", "win_get_height", "tabpage_list_wins", "buf_set_lines", "buf_set_name", "tabpage_get_win", "feedkeys", "win_set_var", "buf_get_mark", "tabpage_set_var", "win_get_position", "win_get_number", "win_set_cursor", "win_set_option", "win_get_cursor", "buf_line_count", "win_get_option", "set_current_buf", "set_current_tabpage", "win_get_width", "win_get_var", "tabpage_get_var", "tabpage_is_valid", "set_option", "buf_get_lines", "set_current_dir", "list_wins", "win_set_width", "win_get_tabpage", "tabpage_del_var", "del_var", "set_current_win", "win_is_valid", "buf_is_valid"]
 
-function commandEscape(str:string):string {
+function commandEscape(str: string): string {
   return str.replace(/'/g, "''")
 }
 
@@ -21,7 +21,7 @@ type RequestType = 'call' | 'expr'
 class Response extends Emitter {
   private _resolved = false
 
-  constructor(private type:RequestType, private expr?:string) {
+  constructor(private requestType: RequestType, private expr?: string) {
     super()
     setTimeout(() => {
       if (!this._resolved) {
@@ -30,13 +30,13 @@ class Response extends Emitter {
     }, timeout)
   }
 
-  public resolve(result:any):void {
+  public resolve(result: any): void {
     if (this._resolved) return
     this._resolved = true
-    if (this.type == 'call') {
+    if (this.requestType == 'call') {
       let [error, res] = result
       this.emit('done', error, res)
-    } else if (this.type == 'expr') {
+    } else if (this.requestType == 'expr') {
       if (result == 'ERROR') {
         this.emit('done', `vim (E15) invalid expression: ${this.expr}`, null)
       } else {
@@ -45,9 +45,9 @@ class Response extends Emitter {
     }
   }
 
-  public get result():Promise<any> {
+  public get result(): Promise<any> {
     if (this._resolved) return
-    return new Promise((resolve, reject):void => {
+    return new Promise((resolve, reject): void => {
       this.once('done', (errMsg, result) => {
         this.removeAllListeners()
         if (errMsg) return reject(new Error(errMsg))
@@ -60,14 +60,14 @@ class Response extends Emitter {
 // request vim for result
 export default class Request {
   private requestId = -1
-  private pendings:Map<number, Response> = new Map()
-  private supportedFuncs:string[]
-  private buffered:Function[] = []
+  private pendings: Map<number, Response> = new Map()
+  private supportedFuncs: string[]
+  private buffered: Function[] = []
 
-  constructor(private conn:Connection) {
+  constructor(private conn: Connection) {
     this.supportedFuncs = SUPPORTED_FUNCTIONS.map(s => 'nvim_' + s)
     conn.once('ready', () => {
-      let {buffered} = this
+      let { buffered } = this
       for (let func of buffered) {
         func()
       }
@@ -82,7 +82,7 @@ export default class Request {
   }
 
   // convert to id before function call
-  private convertArgs(args:any[]):any[] {
+  private convertArgs(args: any[]): any[] {
     return args.map(o => {
       if (o instanceof Window || o instanceof Buffer || o instanceof Tabpage) {
         return o.id
@@ -91,8 +91,8 @@ export default class Request {
     })
   }
 
-  private eval(expr:string):Promise<any> {
-    let {conn} = this
+  private eval(expr: string): Promise<any> {
+    let { conn } = this
     let id = this.requestId
     this.requestId = this.requestId - 1
     let res = new Response('expr', expr)
@@ -107,8 +107,8 @@ export default class Request {
     return res.result
   }
 
-  private call(func:string, args:any[]):Promise<any> {
-    let {conn} = this
+  private call(func: string, args: any[]): Promise<any> {
+    let { conn } = this
     let id = this.requestId
     let isNative = !func.startsWith('nvim_')
     let fname = isNative ? func : func.slice(5)
@@ -126,8 +126,8 @@ export default class Request {
     return res.result
   }
 
-  private command(str:string):Promise<void> {
-    let {conn} = this
+  private command(str: string): Promise<void> {
+    let { conn } = this
     if (!conn.isReady) {
       return Promise.resolve(null)
     }
@@ -135,9 +135,9 @@ export default class Request {
     return Promise.resolve(null)
   }
 
-  public async callNvimFunction(method:string, args:any[]):Promise<any> {
+  public async callNvimFunction(method: string, args: any[]): Promise<any> {
     args = this.convertArgs(args || [])
-    let {supportedFuncs} = this
+    let { supportedFuncs } = this
     switch (method) {
       case 'nvim_tabpage_get_win': {
         let wid = await this.call(method, args)
@@ -161,6 +161,9 @@ export default class Request {
       }
       case 'nvim_eval': {
         return await this.eval(args[0])
+      }
+      case 'nvim_command': {
+        return await this.command(args[0])
       }
       case 'nvim_buf_get_var': {
         let [bufnr, name] = args
@@ -233,7 +236,7 @@ export default class Request {
       }
       case 'nvim_get_mode': {
         let mode = await this.call('mode', [])
-        return {mode, blocking: false}
+        return { mode, blocking: false }
       }
       case 'vim_get_api_info':
       case 'nvim_get_api_info': {
@@ -270,10 +273,11 @@ export default class Request {
       }
       default:
         if (supportedFuncs.indexOf(method) !== -1) {
-          return await this.call(method, args || [])
+          let res = await this.call(method, args || [])
+          return res
         }
         console.error(`[rpc.vim] method ${method} not supported`) // tslint:disable-line
-        throw new Error(`Medhot ${method} not supported`)
+        throw new Error(`Medthod ${method} not supported`)
     }
   }
 }
