@@ -1,6 +1,6 @@
 {
   "name": "vim-node-rpc",
-  "version": "0.1.13",
+  "version": "0.1.15",
   "description": "A transform module to make vim support RPC request as neovim",
   "main": "lib/index.js",
   "bin": "lib/index.js",
@@ -14,7 +14,7 @@
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -p tsconfig.json --watch true --sourceMap",
     "test": "jest",
-    "prepublish": "npm run clean && npm run build"
+    "prepare": "npm run clean && npm run build"
   },
   "repository": {
     "type": "git",
