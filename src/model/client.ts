@@ -1,7 +1,7 @@
-import msgpack, {Codec} from 'msgpack-lite'
+import msgpack, { Codec } from 'msgpack-lite'
 import Buffered from './buffered'
-import {Metadata} from '../meta'
-import {EventEmitter} from 'events'
+import { Metadata } from '../meta'
+import { EventEmitter } from 'events'
 const logger = require('../logger')('client')
 
 class Response {
@@ -9,7 +9,7 @@ class Response {
   private sent: boolean
   private encoder: NodeJS.WritableStream
 
-  constructor(encoder: NodeJS.WritableStream, requestId: number, private codec:Codec) {
+  constructor(encoder: NodeJS.WritableStream, requestId: number, private codec: Codec) {
     this.encoder = encoder
     this.requestId = requestId
   }
@@ -18,14 +18,13 @@ class Response {
     if (this.sent) {
       throw new Error(`Response to id ${this.requestId} already sent`)
     }
-    logger.debug('response:', this.requestId, resp)
     this.encoder.write(
       msgpack.encode([
         1,
         this.requestId,
-        isError ? resp : null,
+        isError ? [0, (resp instanceof Error) ? resp.message : resp] : null,
         !isError ? resp : null,
-      ], {codec: this.codec})
+      ], { codec: this.codec })
     )
     this.sent = true
   }
@@ -40,11 +39,11 @@ export default class Client extends EventEmitter {
   private writer: NodeJS.WritableStream
   private codec: Codec
 
-  constructor(public readonly id:number) {
+  constructor(public readonly id: number) {
     super()
     const codec = this.setupCodec()
-    this.encodeStream = msgpack.createEncodeStream({codec})
-    this.decodeStream = msgpack.createDecodeStream({codec})
+    this.encodeStream = msgpack.createEncodeStream({ codec })
+    this.decodeStream = msgpack.createDecodeStream({ codec })
     this.decodeStream.on('data', (msg: any[]) => {
       this.parseMessage(msg)
     })
@@ -54,11 +53,11 @@ export default class Client extends EventEmitter {
     })
   }
 
-  private setupCodec():Codec {
+  private setupCodec(): Codec {
     const codec = msgpack.createCodec()
 
     Metadata.forEach(
-      ({constructor}, id: number): void => {
+      ({ constructor }, id: number): void => {
         codec.addExtPacker(id, constructor, (obj: any) =>
           msgpack.encode(obj.id)
         )
