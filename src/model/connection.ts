@@ -6,14 +6,14 @@ export default class Connection extends Emitter {
   private _channel: number
 
   constructor(
-    private readable:NodeJS.ReadableStream,
-    private writeable:NodeJS.WritableStream) {
+    private readable: NodeJS.ReadableStream,
+    private writeable: NodeJS.WritableStream) {
     super()
     this._ready = false
     this.readable = process.stdin
     this.writeable = process.stdout
     let buffered = Buffer.alloc(0)
-    this.readable.on('data', (chunk:Buffer) => {
+    this.readable.on('data', (chunk: Buffer) => {
       let start = 0
       for (const pair of chunk.entries()) {
         const [idx, b] = pair
@@ -31,10 +31,10 @@ export default class Connection extends Emitter {
     })
   }
 
-  private parseData(buf:Buffer):void {
+  private parseData(buf: Buffer): void {
     if (buf.length == 0) return
     let str = buf.toString('utf8')
-    let arr:any[]
+    let arr: any[]
     try {
       arr = JSON.parse(str)
     } catch (e) {
@@ -62,7 +62,7 @@ export default class Connection extends Emitter {
     }
   }
 
-  public get channelId():Promise<number> {
+  public get channelId(): Promise<number> {
     if (this._ready) {
       return Promise.resolve(this._channel)
     }
@@ -73,36 +73,36 @@ export default class Connection extends Emitter {
     })
   }
 
-  public get isReady():boolean {
+  public get isReady(): boolean {
     return this._ready
   }
 
-  public response(requestId:number, data?:any):void {
+  public response(requestId: number, data?: any): void {
     this.send([requestId, data || null])
   }
 
-  public notify(event:string, data?:any):void {
+  public notify(event: string, data?: any): void {
     this.send([0, [event, data || null]])
   }
 
-  public send(arr:any[]):void {
+  public send(arr: any[]): void {
     this.writeable.write(JSON.stringify(arr) + '\n')
   }
 
-  public redraw(force = false):void {
-    this.send(['redraw', force])
+  public redraw(force = false): void {
+    this.send(['redraw', force ? 'force' : ''])
   }
 
-  public commmand(cmd:string):void {
+  public commmand(cmd: string): void {
     this.send(['ex', cmd])
   }
 
-  public normal(cmd:string):void {
+  public normal(cmd: string): void {
     this.send(['normal', cmd])
   }
 
-  public expr(inNotify:any, expr:string):void
-  public expr(requestId:any, expr:string):void {
+  public expr(inNotify: any, expr: string): void
+  public expr(requestId: any, expr: string): void {
     if (typeof requestId === 'boolean' && requestId === true) {
       this.send(['expr', expr])
       return
@@ -111,8 +111,8 @@ export default class Connection extends Emitter {
   }
 
   // nvim always require a response, so requestId is required
-  public call(isNotify:any, func:string, args:any[]):void
-  public call(requestId:any, func:string, args:any[]):void {
+  public call(isNotify: any, func: string, args: any[]): void
+  public call(requestId: any, func: string, args: any[]): void {
     if (typeof requestId === 'boolean' && requestId === true) {
       this.send(['call', func, args])
       return

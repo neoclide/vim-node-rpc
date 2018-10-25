@@ -27,7 +27,11 @@ server.on('notification', (event, args) => {
   if (event == 'nvim_call_function') {
     conn.call(true, args[0], args[1])
   } else if (event == 'nvim_command') {
-    conn.commmand(args[0])
+    if (args[0] == 'redraw') {
+      conn.redraw()
+    } else {
+      conn.commmand(args[0])
+    }
   } else if (event == 'nvim_buf_set_var') {
     conn.call(true, 'setbufvar', [args[0].id, args[1], args[2]])
   } else {
