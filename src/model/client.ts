@@ -99,7 +99,7 @@ export default class Client extends EventEmitter {
       let resolved = false
       setTimeout(() => {
         if (resolved) return
-        reject(new Error(`request "${method}" timeout after 3000`))
+        reject(new Error(`request "${method}" with "${JSON.stringify(args)}" timeout after 3000`))
       }, 3000)
       this.pending.set(this.nextRequestId, (err, result) => {
         resolved = true
