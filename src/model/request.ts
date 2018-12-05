@@ -5,7 +5,7 @@ import path from 'path'
 import { Window, Buffer, Tabpage } from '../meta'
 const logger = require('../logger')('model-request')
 
-const timeout = 3000
+const timeout = 30000
 const metaFile = path.join(__dirname, '../../data/api.json')
 const metaData = JSON.parse(fs.readFileSync(metaFile, 'utf8'))
 const callMethod = 'nvim#api#call'
@@ -20,25 +20,33 @@ type RequestType = 'call' | 'expr'
 
 class Response extends Emitter {
   private _resolved = false
+  private _promise: Promise<any>
+  private timer: NodeJS.Timer
 
   constructor(private requestType: RequestType, private expr?: string) {
     super()
-    setTimeout(() => {
-      if (!this._resolved) {
-        this.emit('done', 'timeout after 3s', null)
-      }
+    this.timer = setTimeout(() => {
+      this.emit('done', `${expr} timeout after 30s`, null)
     }, timeout)
+    this._promise = new Promise((resolve, reject): void => {
+      this.once('done', (errMsg, result) => {
+        this.removeAllListeners()
+        if (errMsg) return reject(new Error(errMsg))
+        resolve(result)
+      })
+    })
   }
 
   public resolve(result: any): void {
     if (this._resolved) return
     this._resolved = true
+    clearTimeout(this.timer)
     if (this.requestType == 'call') {
       let [error, res] = result
-      this.emit('done', error, res)
+      this.emit('done', error ? error.toString() : null, res)
     } else if (this.requestType == 'expr') {
       if (result == 'ERROR') {
-        this.emit('done', `vim (E15) invalid expression: ${this.expr}`, null)
+        this.emit('done', `vim (E15) invalid expression: '${this.expr}'`, null)
       } else {
         this.emit('done', null, result)
       }
@@ -46,14 +54,7 @@ class Response extends Emitter {
   }
 
   public get result(): Promise<any> {
-    if (this._resolved) return
-    return new Promise((resolve, reject): void => {
-      this.once('done', (errMsg, result) => {
-        this.removeAllListeners()
-        if (errMsg) return reject(new Error(errMsg))
-        resolve(result)
-      })
-    })
+    return this._promise
   }
 }
 
@@ -114,7 +115,7 @@ export default class Request {
     let fname = isNative ? func : func.slice(5)
     let arglist = [isNative ? 1 : 0, fname, args]
     this.requestId = this.requestId - 1
-    let res = new Response('call')
+    let res = new Response('call', func)
     this.pendings.set(id, res)
     if (conn.isReady) {
       conn.call(id, callMethod, arglist)

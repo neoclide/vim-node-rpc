@@ -1,6 +1,6 @@
 {
   "name": "vim-node-rpc",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "A transform module to make vim support RPC request as neovim",
   "main": "lib/index.js",
   "bin": "lib/index.js",
@@ -32,22 +32,22 @@
   },
   "homepage": "https://github.com/neoclide/vim-node-rpc#readme",
   "dependencies": {
-    "log4js": "^3.0.2",
+    "log4js": "^3.0.6",
     "msgpack-lite": "^0.1.26",
     "uuid": "^3.3",
     "tslib": "^1.9.3"
   },
   "devDependencies": {
-    "@chemzqm/tsconfig": "^0.0.2",
-    "@chemzqm/tslint-config": "^1.0.15",
+    "@chemzqm/tsconfig": "^0.0.3",
+    "@chemzqm/tslint-config": "^1.0.17",
     "@types/msgpack-lite": "^0.1.6",
-    "@types/jest": "^23.3.0",
-    "@types/node": "^10.5.2",
-    "typescript": "^2.9.2",
+    "@types/jest": "^23.3.10",
+    "@types/node": "^10.12.12",
+    "typescript": "^3.2.1",
     "tslint": "^5.11.0",
-    "jest": "^23.4.1",
+    "jest": "^23.6.0",
     "neovim": "^4.2.1",
     "rimraf": "^2.6.2",
-    "ts-jest": "^23.0.1"
+    "ts-jest": "^23.10.5"
   }
 }
