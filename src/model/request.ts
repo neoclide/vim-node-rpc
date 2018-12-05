@@ -210,10 +210,10 @@ export default class Request {
         return await this.call('execute', ['normal! dd'])
       }
       case 'nvim_get_var': {
-        return await this.eval(`g:${args[0]}`)
+        return await this.eval(`get(g:,'${args[0]}', v:null)`)
       }
       case 'nvim_get_vvar': {
-        return await this.eval(`v:${args[0]}`)
+        return await this.eval(`get(v:,'${args[0]}', v:null)`)
       }
       case 'nvim_get_option': {
         return await this.eval(`&${args[0]}`)

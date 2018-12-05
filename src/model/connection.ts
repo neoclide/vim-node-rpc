@@ -101,7 +101,7 @@ export default class Connection extends Emitter {
     this.send(['normal', cmd])
   }
 
-  public expr(inNotify: any, expr: string): void
+  public expr(isNotify: any, expr: string): void
   public expr(requestId: any, expr: string): void {
     if (typeof requestId === 'boolean' && requestId === true) {
       this.send(['expr', expr])
