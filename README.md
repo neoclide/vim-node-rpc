@@ -5,6 +5,16 @@ does, so that neovim remote plugins could work for vim.
 
 Tested on vim 8.1.150, could works, but still W.I.P.
 
+## Install
+
+If you're using [coc.nvim](https://github.com/neoclide/coc.nvim), you just need:
+
+```
+yarn global add vim-node-rpc
+```
+
+to install it to your global yarn directory.
+
 ## How it works
 
 ![group](https://user-images.githubusercontent.com/251450/43032696-d71ef922-8cef-11e8-9ecc-392b1fbc29ed.png)
