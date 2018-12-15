@@ -30,6 +30,11 @@ class Response {
   }
 }
 
+interface ClientInfo {
+  name: string
+  version?: object
+}
+
 export default class Client extends EventEmitter {
   private pending: Map<number, Function> = new Map()
   private nextRequestId = 1
@@ -38,6 +43,7 @@ export default class Client extends EventEmitter {
   private reader: NodeJS.ReadableStream
   private writer: NodeJS.WritableStream
   private codec: Codec
+  private clientInfo: ClientInfo
 
   constructor(public readonly id: number) {
     super()
@@ -51,6 +57,14 @@ export default class Client extends EventEmitter {
       this.detach()
       this.emit('detach')
     })
+  }
+
+  public setClientInfo(info: ClientInfo): void {
+    this.clientInfo = info
+  }
+
+  public get name(): string {
+    return this.clientInfo ? this.clientInfo.name : ''
   }
 
   private setupCodec(): Codec {

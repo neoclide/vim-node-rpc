@@ -1,16 +1,12 @@
 import Connection from './connection'
 import Emitter from 'events'
-import fs from 'fs'
-import path from 'path'
 import { Window, Buffer, Tabpage } from '../meta'
 const logger = require('../logger')('model-request')
 
 const timeout = 30000
-const metaFile = path.join(__dirname, '../../data/api.json')
-const metaData = JSON.parse(fs.readFileSync(metaFile, 'utf8'))
 const callMethod = 'nvim#api#call'
 
-const SUPPORTED_FUNCTIONS = ["buf_attach", "win_set_height", "win_del_var", "buf_detach", "set_var", "win_get_height", "tabpage_list_wins", "buf_set_lines", "buf_set_name", "tabpage_get_win", "feedkeys", "win_set_var", "buf_get_mark", "tabpage_set_var", "win_get_position", "win_get_number", "win_set_cursor", "win_set_option", "win_get_cursor", "buf_line_count", "win_get_option", "set_current_buf", "set_current_tabpage", "win_get_width", "win_get_var", "tabpage_get_var", "tabpage_is_valid", "set_option", "buf_get_lines", "set_current_dir", "list_wins", "win_set_width", "win_get_tabpage", "tabpage_del_var", "del_var", "set_current_win", "win_is_valid", "buf_is_valid"]
+const SUPPORTED_FUNCTIONS = ["set_client_info", "buf_attach", "win_set_height", "win_del_var", "buf_detach", "set_var", "win_get_height", "tabpage_list_wins", "buf_set_lines", "buf_set_name", "tabpage_get_win", "feedkeys", "win_set_var", "buf_get_mark", "tabpage_set_var", "win_get_position", "win_get_number", "win_set_cursor", "win_set_option", "win_get_cursor", "buf_line_count", "win_get_option", "set_current_buf", "set_current_tabpage", "win_get_width", "win_get_var", "tabpage_get_var", "tabpage_is_valid", "set_option", "buf_get_lines", "set_current_dir", "list_wins", "win_set_width", "win_get_tabpage", "tabpage_del_var", "del_var", "set_current_win", "win_is_valid", "buf_is_valid"]
 
 function commandEscape(str: string): string {
   return str.replace(/'/g, "''")
@@ -238,11 +234,6 @@ export default class Request {
       case 'nvim_get_mode': {
         let mode = await this.call('mode', [])
         return { mode, blocking: false }
-      }
-      case 'vim_get_api_info':
-      case 'nvim_get_api_info': {
-        let channelId = await this.conn.channelId
-        return [channelId, metaData]
       }
       case 'nvim_win_get_buf': {
         let id = await this.call('winbufnr', args)

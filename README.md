@@ -71,7 +71,6 @@ There're some methods that no clear way to implement for vim:
 - `nvim_get_color_map`
 - `nvim_get_keymap`
 - `nvim_get_commands`
-- `nvim_set_client_info`
 - `nvim_get_chan_info`
 - `nvim_list_chans`
 - `nvim_call_atomic`

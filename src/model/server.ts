@@ -1,20 +1,25 @@
 import Emitter from 'events'
-import net, {Server, Socket} from 'net'
+import net, { Server, Socket } from 'net'
 import Client from './client'
 import Request from './request'
+import path from 'path'
+import fs from 'fs'
 const logger = require('../logger')('server')
 
+const metaFile = path.join(__dirname, '../../data/api.json')
+const metaData = JSON.parse(fs.readFileSync(metaFile, 'utf8'))
+
 // a messagepack server
-export default class MsgpackServer extends Emitter  {
-  private server:Server
-  private clients:Client[] = []
-  private clientId = 1
-  constructor(path:string, private requester:Request) {
+export default class MsgpackServer extends Emitter {
+  private server: Server
+  private clients: Client[] = []
+  constructor(path: string, private requester: Request) {
     super()
+    let clientId = 1
     this.server = net.createServer(socket => {
-      this.createClient(socket, this.clientId)
-      this.emit('connect', this.clientId)
-      this.clientId = this.clientId + 1
+      let client = this.createClient(socket, clientId)
+      clientId = clientId + 1
+      this.emit('connect', client.id)
     })
     this.server.on('close', this.onClose.bind(this))
     this.server.on('error', this.onError.bind(this))
@@ -23,7 +28,11 @@ export default class MsgpackServer extends Emitter  {
     })
   }
 
-  private createClient(socket:Socket, clientId:number):void {
+  private hasClient(name: string): boolean {
+    return this.clients.find(c => c.name == name) != null
+  }
+
+  private createClient(socket: Socket, clientId: number): Client {
     let client = new Client(clientId)
     client.attach(socket, socket)
     this.clients.push(client)
@@ -32,16 +41,31 @@ export default class MsgpackServer extends Emitter  {
       if (idx !== -1) this.clients.splice(idx, 1)
       this.emit('disconnect', client.id)
     })
+    let id = 1
     client.on('request', (method, args, response) => {
-      logger.debug('request', method, args)
-      this.requester.callNvimFunction(method, args).then(result => {
-        if (method == 'vim_get_api_info' || method == 'nvim_get_api_info') {
-          // use clientId as neovim channelId
-          result[0] = clientId
+      let rid = id
+      id = id + 1
+      logger.debug(`request ${rid}:`, method, args)
+      if (method == 'vim_get_api_info' || method == 'nvim_get_api_info') {
+        let res = [clientId, metaData]
+        response.send(res, false)
+        return
+      }
+      if (method == 'nvim_set_client_info') {
+        let [name, version] = args
+        if (this.hasClient(name)) {
+          logger.error(`client ${name} exists!`)
         }
+        client.setClientInfo({ name, version })
+        this.emit('client', client.id, name)
+        response.send(null, false)
+        return
+      }
+      this.requester.callNvimFunction(method, args).then(result => {
+        logger.debug(`request result ${rid}:`, result)
         response.send(result, false)
       }, err => {
-        logger.debug('request error', method, err.message)
+        logger.debug(`request error ${rid}: `, err.message)
         response.send(err, true)
       })
     })
@@ -50,9 +74,10 @@ export default class MsgpackServer extends Emitter  {
       logger.debug('Client event:', event, args)
       this.emit('notification', event, args)
     })
+    return client
   }
 
-  public notify(clientId:number, method:string, args:any[]):void {
+  public notify(clientId: number, method: string, args: any[]): void {
     for (let client of this.clients) {
       if (clientId == 0) {
         client.notify(method, args)
@@ -62,13 +87,13 @@ export default class MsgpackServer extends Emitter  {
     }
   }
 
-  public request(clientId:number, method:string, args:any[]):Promise<any> {
+  public request(clientId: number, method: string, args: any[]): Promise<any> {
     let client = this.clients.find(o => o.id == clientId)
     if (!clientId) Promise.reject(new Error(`Client ${clientId} not found!`))
     return client.request(method, args)
   }
 
-  private onClose():void {
+  private onClose(): void {
     for (let client of this.clients) {
       client.detach()
     }
@@ -76,7 +101,7 @@ export default class MsgpackServer extends Emitter  {
     this.emit('close')
   }
 
-  private onError(err):void {
+  private onError(err): void {
     logger.error('socket error: ', err.message)
   }
 }

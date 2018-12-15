@@ -18,6 +18,10 @@ server.on('connect', clientId => {
   conn.notify('connect', clientId)
 })
 
+server.on('client', (id, name) => {
+  conn.commmand(`let g:vim_node_${name}_client_id = ${id}`)
+})
+
 server.on('disconnect', clientId => {
   conn.notify('disconnect', clientId)
 })
