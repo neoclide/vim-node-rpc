@@ -42,6 +42,13 @@ export default class MsgpackServer extends Emitter {
       this.emit('disconnect', client.id)
     })
     let id = 1
+    let setClientInfo = (name: string, version: object): void => {
+      if (this.hasClient(name)) {
+        logger.error(`client ${name} exists!`)
+      }
+      client.setClientInfo({ name, version })
+      this.emit('client', client.id, name)
+    }
     client.on('request', (method, args, response) => {
       let rid = id
       id = id + 1
@@ -52,12 +59,7 @@ export default class MsgpackServer extends Emitter {
         return
       }
       if (method == 'nvim_set_client_info') {
-        let [name, version] = args
-        if (this.hasClient(name)) {
-          logger.error(`client ${name} exists!`)
-        }
-        client.setClientInfo({ name, version })
-        this.emit('client', client.id, name)
+        setClientInfo(args[0], args[1])
         response.send(null, false)
         return
       }
@@ -72,6 +74,9 @@ export default class MsgpackServer extends Emitter {
     // not used
     client.on('notification', (event, args) => {
       logger.debug('Client event:', event, args)
+      if (event == 'nvim_set_client_info') {
+        setClientInfo(args[0], args[1])
+      }
       this.emit('notification', event, args)
     })
     return client
