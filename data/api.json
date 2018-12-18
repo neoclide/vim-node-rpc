@@ -218,20 +218,6 @@
     },
     {
       "method": true,
-      "name": "nvim_buf_get_keymap",
-      "return_type": "ArrayOf(Dictionary)",
-      "parameters": [["Buffer", "buffer"], ["String", "mode"]],
-      "since": 3
-    },
-    {
-      "method": true,
-      "name": "nvim_buf_get_commands",
-      "return_type": "Dictionary",
-      "parameters": [["Buffer", "buffer"], ["Dictionary", "opts"]],
-      "since": 4
-    },
-    {
-      "method": true,
       "name": "nvim_buf_set_var",
       "return_type": "void",
       "parameters": [
@@ -296,32 +282,6 @@
     },
     {
       "method": true,
-      "name": "nvim_buf_add_highlight",
-      "return_type": "Integer",
-      "parameters": [
-        ["Buffer", "buffer"],
-        ["Integer", "src_id"],
-        ["String", "hl_group"],
-        ["Integer", "line"],
-        ["Integer", "col_start"],
-        ["Integer", "col_end"]
-      ],
-      "since": 1
-    },
-    {
-      "method": true,
-      "name": "nvim_buf_clear_highlight",
-      "return_type": "void",
-      "parameters": [
-        ["Buffer", "buffer"],
-        ["Integer", "src_id"],
-        ["Integer", "line_start"],
-        ["Integer", "line_end"]
-      ],
-      "since": 1
-    },
-    {
-      "method": true,
       "name": "nvim_tabpage_list_wins",
       "return_type": "ArrayOf(Window)",
       "parameters": [["Tabpage", "tabpage"]],
@@ -375,17 +335,6 @@
     },
     {
       "method": false,
-      "name": "nvim_ui_attach",
-      "return_type": "void",
-      "parameters": [
-        ["Integer", "width"],
-        ["Integer", "height"],
-        ["Dictionary", "options"]
-      ],
-      "since": 1
-    },
-    {
-      "method": false,
       "name": "nvim_ui_detach",
       "return_type": "void",
       "parameters": [],
@@ -414,45 +363,12 @@
     },
     {
       "method": false,
-      "name": "nvim_get_hl_by_name",
-      "return_type": "Dictionary",
-      "parameters": [["String", "name"], ["Boolean", "rgb"]],
-      "since": 3
-    },
-    {
-      "method": false,
-      "name": "nvim_get_hl_by_id",
-      "return_type": "Dictionary",
-      "parameters": [["Integer", "hl_id"], ["Boolean", "rgb"]],
-      "since": 3
-    },
-    {
-      "method": false,
       "name": "nvim_feedkeys",
       "return_type": "void",
       "parameters": [
         ["String", "keys"],
         ["String", "mode"],
         ["Boolean", "escape_csi"]
-      ],
-      "since": 1
-    },
-    {
-      "method": false,
-      "name": "nvim_input",
-      "return_type": "Integer",
-      "parameters": [["String", "keys"]],
-      "since": 1
-    },
-    {
-      "method": false,
-      "name": "nvim_replace_termcodes",
-      "return_type": "String",
-      "parameters": [
-        ["String", "str"],
-        ["Boolean", "from_part"],
-        ["Boolean", "do_lt"],
-        ["Boolean", "special"]
       ],
       "since": 1
     },
@@ -469,13 +385,6 @@
       "return_type": "Object",
       "parameters": [["String", "expr"]],
       "since": 1
-    },
-    {
-      "method": false,
-      "name": "nvim_execute_lua",
-      "return_type": "Object",
-      "parameters": [["String", "code"], ["Array", "args"]],
-      "since": 3
     },
     {
       "method": false,
@@ -661,34 +570,6 @@
     },
     {
       "method": false,
-      "name": "nvim_subscribe",
-      "return_type": "void",
-      "parameters": [["String", "event"]],
-      "since": 1
-    },
-    {
-      "method": false,
-      "name": "nvim_unsubscribe",
-      "return_type": "void",
-      "parameters": [["String", "event"]],
-      "since": 1
-    },
-    {
-      "method": false,
-      "name": "nvim_get_color_by_name",
-      "return_type": "Integer",
-      "parameters": [["String", "name"]],
-      "since": 1
-    },
-    {
-      "method": false,
-      "name": "nvim_get_color_map",
-      "return_type": "Dictionary",
-      "parameters": [],
-      "since": 1
-    },
-    {
-      "method": false,
       "name": "nvim_get_mode",
       "return_type": "Dictionary",
       "parameters": [],
@@ -726,59 +607,6 @@
         ["Dictionary", "methods"],
         ["Dictionary", "attributes"]
       ],
-      "since": 4
-    },
-    {
-      "method": false,
-      "name": "nvim_get_chan_info",
-      "return_type": "Dictionary",
-      "parameters": [["Integer", "chan"]],
-      "since": 4
-    },
-    {
-      "method": false,
-      "name": "nvim_list_chans",
-      "return_type": "Array",
-      "parameters": [],
-      "since": 4
-    },
-    {
-      "method": false,
-      "name": "nvim_call_atomic",
-      "return_type": "Array",
-      "parameters": [["Array", "calls"]],
-      "since": 1
-    },
-    {
-      "method": false,
-      "name": "nvim_parse_expression",
-      "return_type": "Dictionary",
-      "parameters": [
-        ["String", "expr"],
-        ["String", "flags"],
-        ["Boolean", "highlight"]
-      ],
-      "since": 4
-    },
-    {
-      "method": false,
-      "name": "nvim_list_uis",
-      "return_type": "Array",
-      "parameters": [],
-      "since": 4
-    },
-    {
-      "method": false,
-      "name": "nvim_get_proc_children",
-      "return_type": "Array",
-      "parameters": [["Integer", "pid"]],
-      "since": 4
-    },
-    {
-      "method": false,
-      "name": "nvim_get_proc",
-      "return_type": "Object",
-      "parameters": [["Integer", "pid"]],
       "since": 4
     },
     {
