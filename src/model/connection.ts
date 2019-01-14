@@ -114,6 +114,7 @@ export default class Connection extends Emitter {
   public call(isNotify: any, func: string, args: any[]): void
   public call(requestId: any, func: string, args: any[]): void {
     if (typeof requestId === 'boolean' && requestId === true) {
+      // notify
       this.send(['call', func, args])
       return
     }

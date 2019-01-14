@@ -39,7 +39,7 @@ class Response extends Emitter {
     clearTimeout(this.timer)
     if (this.requestType == 'call') {
       let [error, res] = result
-      this.emit('done', error ? error.toString() : null, res)
+      this.emit('done', error ? `call ${this.expr}: ${error.toString()}` : null, res)
     } else if (this.requestType == 'expr') {
       if (result == 'ERROR') {
         this.emit('done', `vim (E15) invalid expression: '${this.expr}'`, null)

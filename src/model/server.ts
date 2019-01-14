@@ -71,7 +71,6 @@ export default class MsgpackServer extends Emitter {
         response.send(err, true)
       })
     })
-    // not used
     client.on('notification', (event, args) => {
       logger.debug('Client event:', event, args)
       if (event == 'nvim_set_client_info') {

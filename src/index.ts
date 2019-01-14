@@ -30,14 +30,18 @@ server.on('notification', (event, args) => {
   if (!conn.isReady) return
   if (event == 'nvim_call_function') {
     conn.call(true, args[0], args[1])
+  } else if (event == 'nvim_eval') {
+    conn.expr(true, args[0])
   } else if (event == 'nvim_command') {
-    if (args[0] == 'redraw') {
-      conn.redraw()
+    if (/^redraw!?/.test(args[0])) {
+      conn.redraw(args[0].endsWith('!'))
     } else {
       conn.commmand(args[0])
     }
   } else if (event == 'nvim_buf_set_var') {
     conn.call(true, 'setbufvar', [args[0].id, args[1], args[2]])
+  } else if (event.startsWith('nvim_')) {
+    conn.call(true, 'nvim#api#call', [0, event.slice(0, 5), args])
   } else {
     logger.error(`Unknown event:`, event, args)
   }
