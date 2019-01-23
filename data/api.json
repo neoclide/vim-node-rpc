@@ -374,6 +374,13 @@
     },
     {
       "method": false,
+      "name": "nvim_call_atomic",
+      "return_type": "void",
+      "parameters": [["Array", "calls"]],
+      "since": 1
+    },
+    {
+      "method": false,
       "name": "nvim_command_output",
       "return_type": "String",
       "parameters": [["String", "command"]],

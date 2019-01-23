@@ -6,6 +6,16 @@ set cpo&vim
 
 let s:funcs = {}
 
+if exists(':pyx')
+pyx << EOF
+def find(f, seq):
+  for item in seq:
+    if f(item):
+      return item
+  return None
+EOF
+endif
+
 function! s:buf_line_count(bufnr) abort
   if bufnr('%') == a:bufnr
     return line('$')
@@ -296,14 +306,63 @@ EOF
   return pyxeval('wins')
 endfunction
 
+function! s:funcs.call_atomic(calls)
+  for [key, arglist] in a:calls
+    if key ==# 'nvim_call_function'
+      call call(arglist[0], arglist[1])
+    elseif key ==# 'nvim_call_dict_function'
+      call call(arglist[1], arglist[2], arglist[0])
+    elseif key ==# 'nvim_command'
+      execute arglist[0]
+    elseif key ==# 'nvim_eval'
+      call eval(arglist[0])
+    elseif key ==# 'nvim_buf_set_var'
+      call setbufvar(arglist[0]['id'], arglist[1], arglist[2])
+    elseif key ==# 'nvim_buf_del_var'
+      call setbufvar(arglist[0]['id'], arglist[1], v:null)
+    elseif key ==# 'nvim_buf_set_option'
+      call setbufvar(arglist[0]['id'], '&'.arglist[1], arglist[2])
+    elseif key ==# 'nvim_set_current_line'
+      call setline('.', arglist[0])
+    elseif key ==# 'nvim_del_current_line'
+      execute 'normal! dd'
+    elseif key ==# 'nvim_win_set_height'
+      let winnr = win_id2win(arglist[0]['id'])
+      if winnr != 0
+        let curr = winnr()
+        if winnr == curr
+          execute 'pyx vim.current.window.height='.arglist[1]
+        else
+          execute winnr.'wincmd w'
+          execute 'pyx vim.current.window.height='.arglist[1]
+          execute curr.'wincmd w'
+        endif
+      endif
+    elseif key ==# 'nvim_win_set_cursor'
+      let winnr = win_id2win(arglist[0]['id'])
+      if winnr != 0
+        let [line, col] = arglist[1]
+        let curr = winnr()
+        if winnr == curr
+          call cursor(line, col + 1)
+        else
+          execute winnr.'wincmd w'
+          call cursor(line, col + 1)
+          execute curr.'wincmd w'
+        endif
+      endif
+    else
+      let method = s:funcs[key[5:]]
+      if empty(method)
+        throw .key.' of nvim_call_atomic not supported.'
+      else
+        call call(method, arglist)
+      endif
+    endif
+  endfor
+endfunction
+
 function! nvim#api#func_names() abort
-pyx << EOF
-def find(f, seq):
-  for item in seq:
-    if f(item):
-      return item
-  return None
-EOF
   return keys(s:funcs)
 endfunction
 

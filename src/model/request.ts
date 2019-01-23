@@ -6,7 +6,7 @@ const logger = require('../logger')('model-request')
 const timeout = 30000
 const callMethod = 'nvim#api#call'
 
-const SUPPORTED_FUNCTIONS = ["set_client_info", "buf_attach", "win_set_height", "win_del_var", "buf_detach", "set_var", "win_get_height", "tabpage_list_wins", "buf_set_lines", "buf_set_name", "tabpage_get_win", "feedkeys", "win_set_var", "buf_get_mark", "tabpage_set_var", "win_get_position", "win_get_number", "win_set_cursor", "win_set_option", "win_get_cursor", "buf_line_count", "win_get_option", "set_current_buf", "set_current_tabpage", "win_get_width", "win_get_var", "tabpage_get_var", "tabpage_is_valid", "set_option", "buf_get_lines", "set_current_dir", "list_wins", "win_set_width", "win_get_tabpage", "tabpage_del_var", "del_var", "set_current_win", "win_is_valid", "buf_is_valid"]
+const SUPPORTED_FUNCTIONS = ["set_client_info", "buf_attach", "win_set_height", "win_del_var", "buf_detach", "set_var", "win_get_height", "tabpage_list_wins", "buf_set_lines", "buf_set_name", "tabpage_get_win", "feedkeys", "win_set_var", "buf_get_mark", "tabpage_set_var", "win_get_position", "win_get_number", "win_set_cursor", "win_set_option", "win_get_cursor", "buf_line_count", "win_get_option", "set_current_buf", "set_current_tabpage", "win_get_width", "win_get_var", "tabpage_get_var", "tabpage_is_valid", "set_option", "buf_get_lines", "set_current_dir", "list_wins", "win_set_width", "win_get_tabpage", "tabpage_del_var", "del_var", "set_current_win", "win_is_valid", "buf_is_valid", "call_atomic"]
 
 function commandEscape(str: string): string {
   return str.replace(/'/g, "''")
@@ -123,13 +123,12 @@ export default class Request {
     return res.result
   }
 
-  private command(str: string): Promise<void> {
+  public command(str: string): Promise<void> {
     let { conn } = this
     if (!conn.isReady) {
       return Promise.resolve(null)
     }
-    conn.commmand(str)
-    return Promise.resolve(null)
+    return this.call('nvim_command', [str])
   }
 
   public async callNvimFunction(method: string, args: any[]): Promise<any> {

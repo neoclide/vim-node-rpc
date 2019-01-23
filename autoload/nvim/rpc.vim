@@ -9,21 +9,16 @@ let s:logfile = tempname()
 let s:channel = v:null
 let s:script = resolve(expand('<sfile>:h:h:h').'/lib/index.js')
 
-
 " env used only for testing purpose
 if !empty($NVIM_LISTEN_ADDRESS)
   call delete($NVIM_LISTEN_ADDRESS)
   let s:tempname = $NVIM_LISTEN_ADDRESS
 else
   let s:tempname = tempname()
-  if s:is_win
-    let $NVIM_LISTEN_ADDRESS = '\\?\pipe\'.s:tempname
-  else
-    let $NVIM_LISTEN_ADDRESS = s:tempname
-  endif
+  let $NVIM_LISTEN_ADDRESS = s:tempname
 endif
 
-if get(g:, 'coc_node_rpc_debug', 0)
+if get(g:, 'vim_node_rpc_debug', 0)
   call ch_logfile(s:logfile, 'w')
 endif
 
@@ -44,9 +39,12 @@ function! s:on_notify(channel, result)
   endif
 endfunction
 
-function! s:on_exit(channel)
+function! s:on_exit(job, status)
+  if !get(g:, 'coc_vim_leaving', 0) && a:status != 0
+    echohl Error | echom 'vim-node-rpc exited with code: '.a:status | echohl None
+  endif
   let s:channel = v:null
-  doautocmd User NvimRpcExit
+  silent doautocmd User NvimRpcExit
 endfunction
 
 function! nvim#rpc#get_command() abort
@@ -54,7 +52,8 @@ function! nvim#rpc#get_command() abort
     echohl Error | echon '[vim-node-rpc] script file not found!' | echohl None
     return ''
   endif
-  return ['node', s:script]
+  let arr = ['node'] + get(g:, 'vim_node_rpc_args', []) + [s:script]
+  return  s:is_win ? join(arr, ' ') : arr
 endfunction
 
 function! nvim#rpc#start_server() abort
@@ -62,7 +61,7 @@ function! nvim#rpc#start_server() abort
     let state = ch_status(s:channel)
     if state ==# 'open' || state ==# 'buffered'
       " running
-      return
+      return 1
     endif
   endif
   if !executable('node')
@@ -71,7 +70,7 @@ function! nvim#rpc#start_server() abort
     echohl None
     return
   endif
-  let command = nvim#rpc#get_command()
+  let command =  nvim#rpc#get_command()
   if empty(command) | return | endif
   let options = {
         \ 'in_mode': 'json',
@@ -79,7 +78,7 @@ function! nvim#rpc#start_server() abort
         \ 'err_mode': 'nl',
         \ 'callback': function('s:on_notify'),
         \ 'err_cb': function('s:on_error'),
-        \ 'close_cb': function('s:on_exit'),
+        \ 'exit_cb': function('s:on_exit'),
         \ 'timeout': 3000,
         \ 'env': {
         \   'NVIM_LISTEN_ADDRESS': $NVIM_LISTEN_ADDRESS
@@ -98,6 +97,7 @@ function! nvim#rpc#start_server() abort
   let info = ch_info(s:channel)
   let data = json_encode([0, ['ready', [info.id]]])
   call ch_sendraw(s:channel, data."\n")
+  return 1
 endfunction
 
 function! nvim#rpc#request(clientId, method, ...) abort
@@ -130,33 +130,4 @@ endfunction
 function! nvim#rpc#check_client(clientId)
   if empty(s:channel) | return 0 | endif
   return index(s:clientIds, a:clientId) >= 0
-endfunction
-
-function! nvim#rpc#install_node_rpc(...) abort
-  let prompt = get(a:, 1, 1)
-  if prompt
-    let res = input('[vim-node-rpc] vim-node-rpc module not found, install? [y/n]')
-    if res !=? 'y' | return 0 | endif
-  endif
-  let cmd = ''
-  let idx = inputlist(['Select package manager:', '1. npm', '2. yarn'])
-  if idx <= 0 | return 0 | endif
-  if idx == 1
-    let isLinux = !s:is_win && substitute(system('uname'), '\n', '', '') ==# 'Linux'
-    if executable('npm')
-      let cmd = (isLinux ? 'sudo ' : ' ').'npm i -g vim-node-rpc'
-    else
-      echohl Error | echon '[vim-node-rpc] executable "npm" not find in $PATH' | echohl None
-      return 0
-    endif
-  else
-    if executable('yarn')
-      let cmd = 'yarn global add vim-node-rpc'
-    else
-      echohl Error | echon '[vim-node-rpc] executable "yarn" not find in $PATH' | echohl None
-      return 0
-    endif
-  endif
-  execute '!'.cmd
-  return v:shell_error == 0
 endfunction

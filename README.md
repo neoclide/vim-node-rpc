@@ -73,7 +73,6 @@ There're some methods that no clear way to implement for vim:
 - `nvim_get_commands`
 - `nvim_get_chan_info`
 - `nvim_list_chans`
-- `nvim_call_atomic`
 - `nvim_parse_expression`
 - `nvim_get_proc_children`
 - `nvim_get_proc`
