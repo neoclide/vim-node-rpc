@@ -1,6 +1,6 @@
 {
   "name": "vim-node-rpc",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "description": "A transform module to make vim support RPC request as neovim",
   "main": "lib/index.js",
   "bin": "lib/index.js",
