@@ -7,7 +7,12 @@ const logger = require('./logger')('index')
 
 const conn = new Connection(process.stdin, process.stdout)
 const request = new Request(conn)
-const sockFile = process.env.NVIM_LISTEN_ADDRESS
+const isWindows = process.platform == 'win32'
+
+let sockFile = process.env.NVIM_LISTEN_ADDRESS
+if (isWindows && !sockFile.startsWith('\\\\')) {
+  sockFile = '\\\\?\\pipe\\' + sockFile
+}
 const server = new Server(sockFile, request)
 
 server.on('ready', () => {
