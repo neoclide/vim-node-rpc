@@ -90,7 +90,7 @@ function! nvim#rpc#start_server() abort
   let job = job_start(command, options)
   let s:channel = job_getchannel(job)
   let status = ch_status(job)
-  if status !=# 'open' && status !=# 'buffered'
+  if status !=# 'open'
     echohl Error | echon '[vim-node-rpc] failed to start vim-node-rpc service!' | echohl None
     return
   endif
