@@ -38,7 +38,7 @@ server.on('notification', (event, args) => {
   } else if (event == 'nvim_eval') {
     conn.expr(true, args[0])
   } else if (event == 'nvim_command') {
-    if (/^redraw!?/.test(args[0])) {
+    if (args[0] == 'redraw' || args[0] == 'redraw!') {
       conn.redraw(args[0].endsWith('!'))
     } else {
       conn.commmand(args[0])
