@@ -213,7 +213,12 @@ EOF
 endfunction
 
 function! s:funcs.command(command) abort
-  execute a:command
+  " command that could cause cursor vanish
+  if a:command =~# '^echo' || a:command =~# '^redraws' || a:command =~# '^sign place'
+    call timer_start(0, {-> s:execute(a:command)})
+  else
+    execute a:command
+  endif
 endfunction
 
 function! s:funcs.set_current_dir(dir) abort
@@ -313,7 +318,7 @@ function! s:funcs.call_atomic(calls)
     elseif key ==# 'nvim_call_dict_function'
       call call(arglist[1], arglist[2], arglist[0])
     elseif key ==# 'nvim_command'
-      execute arglist[0]
+      call s:funcs.command(arglist[0])
     elseif key ==# 'nvim_eval'
       call eval(arglist[0])
     elseif key ==# 'nvim_buf_set_var'
@@ -380,6 +385,14 @@ function! nvim#api#call(native, method, ...) abort
     let err = v:exception
   endtry
   return [err, res]
+endfunction
+
+function! s:execute(cmd)
+  if a:cmd =~# '^echo'
+    execute a:cmd
+  else
+    silent! execute a:cmd
+  endif
 endfunction
 
 let &cpo = s:save_cpo
