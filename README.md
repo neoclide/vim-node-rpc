@@ -27,7 +27,7 @@ Install [nodejs](https://nodejs.org/en/download/) and [yarn](https://yarnpkg.com
 
 Install [python-client](https://github.com/neovim/python-client) (used for testing) by:
 
-    pip install neovim
+    pip install pynvim
 
 Start testing service by:
 
@@ -80,15 +80,21 @@ There're some methods that no clear way to implement for vim:
 Some methods requires python support of vim to work, you should either have
 `has('python')` or `has('python3')` to `1` with vim.
 
-## Tips
+## Performance
 
-- `requestId > 0` for request, use `ch_evalexpr`
-- `requestId = 0` for notification, use `ch_sendraw`
-- `requestId < 0` for response, send by vim
+Here's the performance data on my mac use CPU: 2.6 GHz Intel Core i7
 
-Vim use new line character for the end of JSON text.
+Request data from vim:
 
-Avoid use request for vim that not response.
+- `1Mb` around 13ms
+- `100kb` < 5ms
+- `10kb` < 1ms
+
+Request data from server:
+
+- `1Mb` around 53ms
+- `100kb` < 7ms
+- `10kb` < 2ms
 
 ## LICENSE
 

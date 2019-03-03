@@ -15,4 +15,4 @@ if [ ! -f ./lib/index.js ]; then
   yarn install
 fi
 
-vim -S mini.vim
+vim -u python.vim
