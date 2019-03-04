@@ -41,6 +41,7 @@ export default class Connection extends Emitter {
       logger.error('Invalid data from vim', str)
     }
     let [id, obj] = JSON.parse(str)
+    logger.debug('received request', id, obj)
     if (arr.length > 2) {
       logger.error('Result array length > 2', arr)
     }
@@ -56,7 +57,6 @@ export default class Connection extends Emitter {
         this.emit('notification', obj)
       }
     } else {
-      logger.debug('received response', id, obj)
       // response for previous request
       this.emit('response', id, obj)
     }
@@ -86,6 +86,7 @@ export default class Connection extends Emitter {
   }
 
   public send(arr: any[]): void {
+    logger.debug('send response', arr[0], arr.slice(1))
     this.writeable.write(JSON.stringify(arr) + '\n')
   }
 

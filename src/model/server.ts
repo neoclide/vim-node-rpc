@@ -52,7 +52,6 @@ export default class MsgpackServer extends Emitter {
     client.on('request', (method, args, response) => {
       let rid = id
       id = id + 1
-      logger.debug(`request ${rid}:`, method, args)
       if (method == 'vim_get_api_info' || method == 'nvim_get_api_info') {
         let res = [clientId, metaData]
         response.send(res, false)
@@ -64,15 +63,13 @@ export default class MsgpackServer extends Emitter {
         return
       }
       this.requester.callNvimFunction(method, args).then(result => {
-        logger.debug(`request result ${rid}:`, result)
         response.send(result, false)
       }, err => {
-        logger.debug(`request error ${rid}: `, err.message)
+        logger.error(`request error ${rid}: `, err.message)
         response.send(err, true)
       })
     })
     client.on('notification', (event, args) => {
-      logger.debug('Client event:', event, args)
       if (event == 'nvim_command') {
         this.requester.command(args[0])
         return

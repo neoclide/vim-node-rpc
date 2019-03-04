@@ -124,7 +124,6 @@ export default class Client extends EventEmitter {
   }
 
   public notify(method: string, args: any[]): void {
-    logger.debug('notification:', method, args)
     this.encodeStream.write(
       msgpack.encode([2, method, args], {
         codec: this.codec
@@ -135,7 +134,6 @@ export default class Client extends EventEmitter {
   // message from client
   private parseMessage(msg: any[]): void {
     const msgType = msg[0]
-    logger.debug('message:', msg)
     if (msgType === 0) {
       // request
       //   - msg[1]: id
