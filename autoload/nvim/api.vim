@@ -357,12 +357,12 @@ function! s:funcs.call_atomic(calls)
         endif
       endif
     else
-      let method = s:funcs[key[5:]]
-      if empty(method)
-        throw .key.' of nvim_call_atomic not supported.'
-      else
-        call call(method, arglist)
-      endif
+      let name = key[5:]
+      try
+        call call(s:funcs[name], arglist)
+      catch /.*/
+        throw v:exception
+      endtry
     endif
   endfor
 endfunction
