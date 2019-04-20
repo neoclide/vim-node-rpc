@@ -79,7 +79,7 @@ function! nvim#rpc#start_server() abort
         \ 'callback': function('s:on_notify'),
         \ 'err_cb': function('s:on_error'),
         \ 'exit_cb': function('s:on_exit'),
-        \ 'timeout': 3000,
+        \ 'timeout': 30000,
         \ 'env': {
         \   'NVIM_LISTEN_ADDRESS': $NVIM_LISTEN_ADDRESS
         \ }
@@ -105,7 +105,7 @@ function! nvim#rpc#request(clientId, method, ...) abort
     return
   endif
   let args = get(a:, 1, [])
-  let res = ch_evalexpr(s:channel, [a:clientId, a:method, args], {'timeout': 5000})
+  let res = ch_evalexpr(s:channel, [a:clientId, a:method, args], {'timeout': 30000})
   if type(res) == 1 && res ==# '' | return '' | endif
   let [l:errmsg, res] =  res
   if l:errmsg

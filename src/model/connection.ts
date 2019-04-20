@@ -1,4 +1,5 @@
 import Emitter from 'events'
+import readline from 'readline'
 const logger = require('../logger')('connection')
 
 export default class Connection extends Emitter {
@@ -12,35 +13,27 @@ export default class Connection extends Emitter {
     this._ready = false
     this.readable = process.stdin
     this.writeable = process.stdout
-    let buffered = Buffer.alloc(0)
-    this.readable.on('data', (chunk: Buffer) => {
-      let start = 0
-      for (const pair of chunk.entries()) {
-        const [idx, b] = pair
-        if (b == 10) {
-          this.parseData(Buffer.concat([buffered, chunk.slice(start, idx)]))
-          start = idx + 1
-          buffered = Buffer.alloc(0)
-        }
-      }
-      if (start == 0) {
-        buffered = Buffer.concat([buffered, chunk])
-      } else if (start != chunk.length) {
-        buffered = chunk.slice(start)
-      }
+    const rl = readline.createInterface(this.readable)
+    rl.on('line', (line: string) => {
+      this.parseData(line)
+    })
+    rl.on('close', () => {
+      logger.error('stdin get closed')
+      process.exit(0)
     })
   }
 
-  private parseData(buf: Buffer): void {
-    if (buf.length == 0) return
-    let str = buf.toString('utf8')
+  private parseData(str: string): void {
+    if (str.length == 0) return
     let arr: any[]
     try {
       arr = JSON.parse(str)
     } catch (e) {
       logger.error('Invalid data from vim', str)
+      this.echoerr(`Invalid data: ${str}`)
+      return
     }
-    let [id, obj] = JSON.parse(str)
+    let [id, obj] = arr
     logger.debug('received request', id, obj)
     if (arr.length > 2) {
       logger.error('Result array length > 2', arr)
@@ -96,6 +89,10 @@ export default class Connection extends Emitter {
 
   public commmand(cmd: string): void {
     this.send(['ex', cmd])
+  }
+
+  private echoerr(msg: string): void {
+    this.commmand(`echoerr '${msg.replace(/'/, "''")}'`)
   }
 
   public normal(cmd: string): void {
