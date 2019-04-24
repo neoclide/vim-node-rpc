@@ -7,13 +7,8 @@ Tested on vim 8.1.150, could works, but still W.I.P.
 
 ## Install
 
-If you're using [coc.nvim](https://github.com/neoclide/coc.nvim), you just need:
-
-```
-yarn global add vim-node-rpc
-```
-
-to install it to your global yarn directory.
+If you're using [coc.nvim](https://github.com/neoclide/coc.nvim), you don't need
+this module any more.
 
 ## How it works
 
