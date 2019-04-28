@@ -14,7 +14,7 @@
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -p tsconfig.json --watch true --sourceMap",
     "test": "jest",
-    "prepare": "yarn clean && yarn build"
+    "prepare": "npx npm-run-all clean build"
   },
   "repository": {
     "type": "git",
