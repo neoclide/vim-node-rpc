@@ -13,7 +13,6 @@
     "lint": "tslint -c tslint.json -p .",
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -p tsconfig.json --watch true --sourceMap",
-    "test": "jest",
     "prepare": "npx npm-run-all clean build"
   },
   "repository": {
@@ -32,23 +31,20 @@
   },
   "homepage": "https://github.com/neoclide/vim-node-rpc#readme",
   "dependencies": {
-    "log4js": "^3.0.6",
+    "log4js": "^4.3.1",
     "msgpack-lite": "^0.1.26",
     "tslib": "^1.9.3",
     "uuid": "^3.3"
   },
   "devDependencies": {
-    "@chemzqm/neovim": "^4.3.51",
+    "@chemzqm/neovim": "^5.1.7",
     "@chemzqm/tsconfig": "^0.0.3",
-    "@chemzqm/tslint-config": "^1.0.17",
-    "@types/jest": "^23.3.10",
+    "@chemzqm/tslint-config": "^1.0.18",
     "@types/msgpack-lite": "^0.1.6",
-    "@types/node": "^10.12.12",
-    "jest": "^23.6.0",
-    "neovim": "^4.2.1",
-    "rimraf": "^2.6.2",
-    "ts-jest": "^23.10.5",
-    "tslint": "^5.11.0",
-    "typescript": "^3.2.1"
+    "@types/node": "^12.0.5",
+    "neovim": "^4.5.0",
+    "rimraf": "^2.6.3",
+    "tslint": "^5.17.0",
+    "typescript": "^3.5.1"
   }
 }
