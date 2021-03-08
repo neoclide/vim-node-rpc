@@ -30,7 +30,7 @@ function! s:on_stderr(channel, message)
   echohl Error | echon a:message | echohl None
 endfunction
 
-execute 'set rtp+=/Users/chemzqm/.vim/bundle/vim-hug-neovim-rpc'
+execute 'set rtp+=$HOME/.vim/bundle/vim-hug-neovim-rpc'
 let address = neovim_rpc#serveraddr()
 let parts = split(address, ':')
 let $NVIM_LISTEN_PORT = parts[1]
