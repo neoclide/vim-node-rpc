@@ -13,7 +13,7 @@
     "lint": "tslint -c tslint.json -p .",
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -p tsconfig.json --watch true --sourceMap",
-    "prepare": "npx npm-run-all clean build"
+    "prepare": "tsc -p tsconfig.json"
   },
   "repository": {
     "type": "git",
